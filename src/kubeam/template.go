@@ -11,6 +11,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"gopkg.in/yaml.v2"
 )
 
@@ -73,7 +74,9 @@ func render_template(tmpl_file string, pairs map[string]interface{}) string {
 			*/
 			//var tmpl = template.Must(template.ParseFiles(t))
 			// Create a new template and parse the letter into it.
-			var tmpl = template.Must(template.New("lookup_file").Parse(t))
+			// Get the Sprig function map.
+			fmap := sprig.TxtFuncMap()
+			var tmpl = template.Must(template.New("lookup_file").Funcs(fmap).Parse(t))
 
 			var bytes bytes.Buffer
 			writer := bufio.NewWriter(&bytes)
@@ -130,7 +133,9 @@ func render_template(tmpl_file string, pairs map[string]interface{}) string {
 	}
 
 	//var tmpl = template.Must(template.ParseFiles(tmpl_file))
-	var tmpl = template.Must(template.New("rendered_template").Parse(srcContent.String()))
+	// Get the Sprig function map.
+	fmap := sprig.TxtFuncMap()
+	var tmpl = template.Must(template.New("rendered_template").Funcs(fmap).Parse(srcContent.String()))
 
 	var bytes bytes.Buffer
 	writer := bufio.NewWriter(&bytes)
