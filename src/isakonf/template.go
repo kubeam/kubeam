@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+
+	"github.com/Masterminds/sprig"
 )
 
 func render_template(tmpl_file string, pairs map[string]interface{}) string {
@@ -50,7 +52,8 @@ func render_template(tmpl_file string, pairs map[string]interface{}) string {
 	pairs["hostname"], err = os.Hostname()
 	check(err)
 
-	var tmpl = template.Must(template.ParseFiles(tmpl_file))
+	fmap := sprig.TxtFuncMap()
+	var tmpl = template.Must(template.New("rendered_template").Funcs(fmap).Parse(srcContent.String()))
 
 	var bytes bytes.Buffer
 	writer := bufio.NewWriter(&bytes)
