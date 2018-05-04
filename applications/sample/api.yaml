@@ -1,0 +1,81 @@
+---
+description: API definition for sample
+kubenetes_api: cluster
+application:
+ "/v1/create":
+ - name: sample
+   type: namespace
+   action: create
+   resource: "sample"
+   file: 00_create_namespace.yaml
+   namespace: sample
+ - name: sample-mysql-pvc 
+   type: PersistentVolumeClaim
+   action: create
+   resource: "sample-mysql-pvc"
+   file: 00_mysql-volume-claim.yaml
+   namespace: sample
+ - name: sample-mysql 
+   type: StatefulSet 
+   action: create
+   resource: "sample-mysql"
+   file: 01_mysql-statefulset.yaml
+   namespace: sample
+ - name: sample-mysql-service
+   type: Service
+   action: create
+   resource: "sample-mysql-service"
+   file: 02_mysql-service.yaml
+   namespace: sample
+ - name: sample
+   type: deployment
+   action: create
+   resource: "sample"
+   file: 03_sample-deployment.yaml
+   namespace: sample
+ - name: sample-service 
+   type: service
+   action: create
+   resource: "sample-service"
+   file: 04_sample-service.yaml
+   namespace: sample
+ "/v1/delete":
+ - name: sample-mysql 
+   type: StatefulSet 
+   action: create
+   resource: "sample-mysql"
+   file: 01_mysql-statefulset.yaml
+   namespace: sample
+ - name: sample-mysql-service
+   type: Service
+   action: delete
+   resource: "sample-mysql-service"
+   file: 02_mysql-service.yaml
+   namespace: sample
+ - name: sample
+   type: deployment
+   action: delete
+   resource: "sample"
+   file: 03_sample-deployment.yaml
+   namespace: sample
+ - name: sample-service 
+   type: service
+   action: delete
+   resource: "sample-service"
+   file: 04_sample-service.yaml
+   namespace: sample
+ "/v1/deploy":
+ - name: sample
+   type: deployment
+   action: replace
+   resource: "sample"
+   file: 03_sample-deployment.yaml
+   namespace: sample
+ "/v1/provision":
+ - name: sample
+   type: deployment
+   action: recreate
+   resource: "sample"
+   file: 03_sample-deployment.yaml
+   namespace: sample
+  

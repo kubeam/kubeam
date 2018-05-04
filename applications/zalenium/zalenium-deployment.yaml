@@ -1,0 +1,90 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: zalenium-{{.environment}}-deployment
+  labels:
+    app: zalenium-{{.environment}}
+    role: grid
+spec:
+  replicas: 1
+  selector:
+    matchExpressions:
+      - {key: app, operator: In, values: [zalenium-{{.environment}}]}
+      - {key: role, operator: In, values: [grid]}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: zalenium-{{.environment}}
+        role: grid
+    spec:
+      containers:
+        - name: zalenium-{{.environment}}
+          image: dosel/zalenium:3.9.1a
+          securityContext:
+            privileged: true
+          imagePullPolicy: Always
+          args:
+            - start
+            - '--desiredContainers'
+            - '2'
+            - '--screenWidth'
+            - '1440'
+            - '--screenHeight'
+            - '810'
+            - '--seleniumImageName'
+            - 'elgalu/selenium:{{.tag}}'
+            - '--maxTestSessions'
+            - '1'
+          env:
+            - name: TZ
+              value: US/Pacific
+            - name: ZALENIUM_KUBERNETES_CPU_REQUEST
+              value: 250m
+            - name: ZALENIUM_KUBERNETES_CPU_LIMIT
+              value: 500m
+            - name: ZALENIUM_KUBERNETES_MEMORY_REQUEST
+              value: 500Mi
+            - name: ZALENIUM_KUBERNETES_MEMORY_LIMIT
+              value: 1Gi
+            - name: OVERRIDE_WAIT_TIME
+              value: 5m
+            - name: S3_BUCKET
+              value: zalenium-video-storage-{{.environment}}
+            - name: S3_REGION
+              value: us-west-2
+            - name: AWS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: zalenium-video-storage-{{.environment}}-secret
+                  key: aws-key
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: zalenium-video-storage-{{.environment}}-secret
+                  key: aws-secret-key
+          resources:
+            requests:
+              cpu: 250m
+              memory: 400Mi
+          ports:
+            - containerPort: 4444
+              protocol: TCP
+          volumeMounts:
+          - mountPath: /home/seluser/videos
+            name: zaleniumvideos
+      initContainers:
+      - name: init-zalenium
+        image: busybox
+        command: ['sh', '-c', 'chown 1000:1000 /home/seluser/videos']
+        volumeMounts:
+        - mountPath: /home/seluser/videos
+          name: zaleniumvideos
+      volumes:
+        - name: zaleniumvideos
+          persistentVolumeClaim:
+            claimName: zalenium-videos-{{.environment}}-pvc

@@ -1,0 +1,15 @@
+---
+description: List of available stacks
+clusters:
+  '66':
+    default_ttl: 1500
+    ttl_sets: 3
+  '67':
+    default_ttl: 1500
+    ttl_sets: 3
+  '68':
+    default_ttl: 1500
+    ttl_sets: 3
+  '69':
+    default_ttl: 1500
+    ttl_sets: 3

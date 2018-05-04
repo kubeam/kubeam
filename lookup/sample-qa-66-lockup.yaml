@@ -1,0 +1,7 @@
+---
+description: Custom values per stack
+lookup:
+  'sample--app':
+    replicas: 2
+  'sample-web':
+    replicas: 1

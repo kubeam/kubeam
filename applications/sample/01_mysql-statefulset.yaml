@@ -1,0 +1,60 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: sample-mysql
+  #namespace: sample
+spec:
+  selector:
+    matchLabels:
+      app: sample-mysql # has to match .spec.template.metadata.labels
+  serviceName: "sample-mysql"
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: sample-mysql # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mysql-server
+        image: mariadb:10
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: sample-mysql
+              key: mysql-password
+        readinessProbe:
+          tcpSocket:
+            port: 3306
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 3306
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysqldb
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+      initContainers:
+      - name: init-mysql
+        image: busybox
+        command: ['sh', '-c', 'chown 999:999 /var/lib/mysql']
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysqldb
+      volumes:
+        - name: mysqldb
+          persistentVolumeClaim:
+            claimName: sample-mysql-pvc
+

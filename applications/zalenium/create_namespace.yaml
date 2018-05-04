@@ -1,0 +1,6 @@
+kind: Namespace
+apiVersion: v1
+metadata: 
+ name: test-framework
+ labels: 
+  name: test-framework

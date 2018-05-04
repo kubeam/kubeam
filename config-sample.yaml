@@ -1,0 +1,25 @@
+---
+credentials:
+  kubeam:
+    username: admin
+    password: '123456'
+https:
+  certificate: server.crt
+  key: server.key
+  port: 8443
+database:
+  name: kubeam
+  type: mysql
+  host: 'mysql'
+  port: 3306
+  password: '123456'
+redis:
+  host: 'redis'
+  port: 6379
+  password:
+application:
+  default:
+    ttl: 600
+  location:
+    basedir: /applications
+

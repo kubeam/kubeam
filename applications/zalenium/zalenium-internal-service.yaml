@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    {{if eq .environment "qa"}}
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "-custom-arn-"
+    {{else}}
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "-custom-arn-"
+    {{end}}
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0
+  name: zalenium-{{.environment}}-internal-service
+  labels:
+    app: zalenium-{{.environment}}
+spec:
+  selector:
+    app: zalenium-{{.environment}}
+    role: grid
+  type: LoadBalancer
+  ports:
+    - name: "https"
+      port: 443
+      targetPort: 4444
+      protocol: "TCP"
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0

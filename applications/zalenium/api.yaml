@@ -1,0 +1,69 @@
+---
+description: API definition for Zaelenium
+kubenetes_api: cluster
+application:
+ "/v1/create":
+ - name: zalenium
+   type: namespace
+   action: create
+   resource: "zalenium"
+   namespace: test-framework
+   file: create_namespace.yaml 
+ - name: zalenium-videos-pvc
+   type: PersistentVolumeClaim
+   action: create
+   resource: "zalenium-videos-{{.environment}}-pvc"
+   file: zalenium-videos-volume-claim.yaml
+   namespace: test-framework
+ - name: zalenium-deployment
+   type: deployment
+   action: create
+   resource: "zalenium-{{.environment}}-deployment"
+   file: zalenium-deployment.yaml
+   namespace: test-framework
+ - name: zalenium-svc
+   type: service
+   action: create
+   resource: "zalenium-{{.environment}}-service"
+   file: zalenium-service.yaml
+   namespace: test-framework
+ - name: zalenium-internal-service
+   type: service
+   action: create
+   resource: "zalenium-{{.environment}}-internal-service"
+   file: zalenium-internal-service.yaml
+   namespace: test-framework
+ "/v1/delete":
+ - name: zalenium-deployment
+   type: deployment
+   action: delete
+   resource: "zalenium-{{.environment}}-deployment"
+   file: zalenium-deployment.yaml
+   namespace: test-framework
+ - name: zalenium-svc
+   type: service
+   action: delete
+   resource: "zalenium-{{.environment}}-service"
+   file: zalenium-service.yaml
+   namespace: test-framework
+ - name: zalenium-internal-service
+   type: service
+   action: delete
+   resource: "zalenium-{{.environment}}-internal-service"
+   file: zalenium-internal-service.yaml
+   namespace: test-framework
+ "/v1/deploy":
+ - name: zalenium-deployment
+   type: deployment
+   action: replace
+   resource: "zalenium-{{.environment}}-deployment"
+   file: zalenium-deployment.yaml
+   namespace: test-framework
+ "/v1/provision":
+ - name: zalenium-deployment
+   type: deployment
+   action: recreate
+   resource: "zalenium-{{.environment}}-deployment"
+   file: zalenium-deployment.yaml
+   namespace: test-framework
+ 

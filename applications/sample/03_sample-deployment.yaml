@@ -1,0 +1,41 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{.environment}}-sample
+  #namespace: sample
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{.environment}}-sample
+    spec:
+      containers:
+      - name: sample
+        image: your-registry/sample:{{.tag}}
+        env:
+        - name: CLASSPATH
+          value: .:/app/*.jar
+        resources:
+          limits:
+            memory: "2Gi"
+          requests:
+            memory: "2Gi"
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - mountPath: /etc/secrets
+            name: sample-secrets
+      volumes:
+        - name: sample-secrets
+          secret:
+            secretName: {{.environment}}-sample-secret
+            items:
+            - key: application.properties
+              path: application.properties

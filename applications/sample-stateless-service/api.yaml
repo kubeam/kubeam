@@ -1,0 +1,51 @@
+---
+description: API definition for sample-stateless-service
+kubenetes_api: cluster
+application:
+ "/v1/create":
+ - name: sample-stateless-service
+   type: namespace
+   action: create
+   resource: "sample-stateless-service"
+   file: 00_create_namespace.yaml
+   namespace: sample-stateless-service
+ - name: sample-stateless-service
+   type: deployment
+   action: create
+   resource: "sample-stateless-service"
+   file: 00_sample-stateless-service-deployment.yaml
+   namespace: sample-stateless-service
+ - name: sample-stateless-service 
+   type: service
+   action: create
+   resource: "sample-stateless-service"
+   file: 01_sample-stateless-service.yaml
+   namespace: sample-stateless-service
+ "/v1/delete":
+ - name: sample-stateless-service
+   type: deployment
+   action: delete
+   resource: "sample-stateless-service"
+   file: 00_sample-stateless-service-deployment.yaml
+   namespace: sample-stateless-service
+ - name: sample-stateless-service 
+   type: service
+   action: delete
+   resource: "sample-stateless-service"
+   file: 01_sample-stateless-service.yaml
+   namespace: sample-stateless-service
+ "/v1/deploy":
+ - name: sample-stateless-service
+   type: deployment
+   action: replace
+   resource: "sample-stateless-service"
+   file: 00_sample-stateless-service-deployment.yaml
+   namespace: sample-stateless-service
+ "/v1/provision":
+ - name: sample-stateless-service
+   type: deployment
+   action: recreate
+   resource: "sample-stateless-service"
+   file: 00_sample-stateless-service-deployment.yaml
+   namespace: sample-stateless-service
+

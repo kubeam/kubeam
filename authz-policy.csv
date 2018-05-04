@@ -1,0 +1,12 @@
+p, , /health-check, GET
+p, , /, GET
+p, admin, /v1/create/*, *
+p, admin, /v1/provision/*, *
+p, admin, /v1/deploy/*, *
+p, admin, /v1/listclusters/*, GET
+p, admin, /v1/getclusterdetail/*, GET
+p, admin, /v1/getallclustersdetail/*, GET
+p, admin, /v1/waitforready/*, GET
+p, admin, /v1/event/*, POST
+p, admin, /v1/runjob, POST
+g, circleci, admin
