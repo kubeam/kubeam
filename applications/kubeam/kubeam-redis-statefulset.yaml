@@ -1,0 +1,56 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{.environment}}-kubeam-redis
+  namespace: {{.environment}}-kubeam
+spec:
+  selector:
+    matchLabels:
+      app: {{.environment}}-kubeam-redis # has to match .spec.template.metadata.labels
+  serviceName: "{{.environment}}-kubeam-redis"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{.environment}}-kubeam-redis
+        redis-sentinel: "true"
+        role: master
+      name: kubeam-redis
+    spec:
+      nodeSelector:
+        kops.k8s.io/instancegroup: persistent
+      securityContext:
+        runAsUser: 997
+        fsGroup: 2000
+      containers:
+        - name: master
+          image: redis
+          resources:
+            limits:
+              memory: "2Gi"
+            requests:
+              memory: "2Gi"
+          env:
+            - name: MASTER
+              value: "true"
+          ports:
+            - containerPort: 6379
+          resources:
+{{- if not (eq .environment "minikube") -}}
+          volumeMounts:
+            - mountPath: /redis-master-data
+              name: data
+{{- end -}}
+        - name: sentinel
+          image: 475968958217.dkr.ecr.us-west-2.amazonaws.com/sbg/redis:latest
+          env:
+            - name: SENTINEL
+              value: "true"
+          ports:
+            - containerPort: 26379
+{{- if not (eq .environment "minikube") -}}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{.environment}}-kubeam-redis-pvc
+{{- end -}}

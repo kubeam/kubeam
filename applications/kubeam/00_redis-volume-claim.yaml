@@ -1,0 +1,14 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{.environment}}-kubeam-redis-pvc
+  labels:
+    type: amazonEBS
+spec:
+  #volumeName: kubeam-redis-pv
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ssd
+  resources:
+    requests:
+      storage: 5Gi

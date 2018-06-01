@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.environment}}-kubeam-mysql-service
+  namespace: {{.environment}}-kubeam
+spec:
+  selector:
+    app: {{.environment}}-kubeam-mysql
+  ports:
+    - name: mysql
+      port: 3306 
+      targetPort: 3306
+      protocol: TCP
+  type: NodePort

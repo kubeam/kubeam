@@ -1,0 +1,80 @@
+---
+description: API definition for Gatekeeper
+kubenetes_api: cluster
+application:
+ "/v1/create":
+ - name: kubeam
+   type: namespace
+   action: create
+   resource: "{{.environment}}-kubeam"
+   file: 00_create_namespace.yaml
+   namespace: {{.environment}}-kubeam
+ #- name: kubeam-mysql-pvc 
+ #  type: PersistentVolumeClaim
+ #  action: create
+ #  resource: "{{.environment}}-kubeam-mysql-pvc"
+ #  file: 00_mysql-volume-claim.yaml
+ #  namespace: {{.environment}}-kubeam
+ #- name: {{.environment}}-kubeam-redis-pvc 
+ #  type: PersistentVolumeClaim
+ #  action: create
+ #  resource: "{{.environment}}-kubeam-redis-pvc"
+ #  file: 00_redis-volume-claim.yaml
+ #  namespace: {{.environment}}-kubeam
+ - name: {{.environment}}-kubeam-mysql 
+   type: StatefulSet 
+   action: create
+   resource: "{{.environment}}-kubeam-mysql"
+   file: 01_mysql-statefulset.yaml
+   namespace: {{.environment}}-kubeam
+ - name: {{.environment}}-kubeam-mysql-service
+   type: Service
+   action: create
+   resource: "{{.environment}}-kubeam-mysql-service"
+   file: 02_mysql-service.yaml
+   namespace: {{.environment}}-kubeam
+ #- name: {{.environment}}-kubeam-redis
+ #  type: StatefulSet
+ #  action: create
+ #  resource: "{{.environment}}-kubeam-redis"
+ #  file: kubeam-redis-statefulset.yaml
+ #  namespace: {{.environment}}-kubeam
+ - name: {{.environment}}-kubeam-redis-service
+   type: Service
+   action: create
+   resource: "{{.environment}}-kubeam-redis-service"
+   file: kubeam-redis-service.yaml
+   namespace: {{.environment}}-kubeam
+ - name: {{.environment}}-kubeam
+   type: deployment
+   action: create
+   resource: "{{.environment}}-kubeam"
+   file: 03_kubeam-deployment.yaml
+   namespace: {{.environment}}-kubeam
+ - name: {{.environment}}-kubeam-service 
+   type: service
+   action: create
+   resource: "{{.environment}}-kubeam-service"
+   file: 04_kubeam-service.yaml
+   namespace: {{.environment}}-kubeam
+ "/v1/delete":
+ - name: {{.environment}}-kubeam
+   type: deployment
+   action: create
+   resource: "{{.environment}}-kubeam"
+   file: 03_kubeam-deployment.yaml
+   namespace: {{.environment}}-kubeam
+ "/v1/deploy":
+ - name: {{.environment}}-kubeam
+   type: deployment
+   action: replace 
+   resource: "{{.environment}}-kubeam"
+   file: 03_kubeam-deployment.yaml
+   namespace: {{.environment}}-kubeam
+ "/v1/provision":
+ - name: {{.environment}}-kubeam
+   type: deployment
+   action: recreate
+   resource: "{{.environment}}-kubeam"
+   file: 03_kubeam-deployment.yaml
+   namespace: {{.environment}}-kubeam
