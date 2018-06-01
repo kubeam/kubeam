@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: kubeamservice
+  name: kubeamservice
+spec:
+  ports:
+    # The port that this service should serve on.
+    - port: 8443
+      targetPort: 443
+  # Label keys and values that must match in order to receive traffic for this service.
+  selector:
+    app: kubeam
+  type: NodePort
