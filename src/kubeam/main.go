@@ -1,15 +1,11 @@
 package main
 
 import (
-	//"reflect"
-	"io"
-	"io/ioutil"
-	"log"
-	"os"
-	//"io/ioutil"
 	"crypto/tls"
-	"crypto/x509"
+	"io"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/creamdog/gonfig"
@@ -98,13 +94,6 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	setRoutes(router)
 
-	sslcert, _ := config.GetString("https/certificate", "server.crt")
-	sslkey, _ := config.GetString("https/key", "server.key")
-
-	caCertBytes, _ := ioutil.ReadFile(sslcert)
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCertBytes)
-
 	cfg := &tls.Config{
 		MinVersion:               tls.VersionTLS12,
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -128,9 +117,6 @@ func main() {
 			tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
 			tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
 		},
-		// Client TLS requests
-		ClientCAs:  caCertPool,
-		ClientAuth: tls.RequireAndVerifyClientCert,
 	}
 	//server_port, err := config.GetString("https/port", 8443)
 	//server_addr := fmt.Sprintf("%v:%v", "", server_port)
@@ -149,6 +135,8 @@ func main() {
 		TLSConfig:    cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
+	sslcert, err := config.GetString("https/certificate", "server.crt")
+	sslkey, err := config.GetString("https/key", "server.key")
 
 	log.Fatal(srv.ListenAndServeTLS(sslcert, sslkey))
 	//log.Fatal(http.ListenAndServe(":8080", router))
