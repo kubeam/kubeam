@@ -49,8 +49,9 @@ func setRoutes(router *mux.Router) {
 		BasicAuth(AuthZ(ApplicationDelete))).Methods("PATCH")
 
 	router.HandleFunc("/v1/event/{application}/{environment}/{cluster}/{tag}",
-		BasicAuth(AuthZ(SaveDeployStatus))).Methods("POST")
+		BasicAuth(AuthZ(EventStatus))).Methods("POST")
 
-	router.HandleFunc("/v1/runjob",
-		BasicAuth(AuthZ(ParseCronDetails))).Methods("POST")
+	// Manage kubernetes Job objects
+	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{tag}",
+		BasicAuth(AuthZ(RunJob))).Methods("POST")
 }

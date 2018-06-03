@@ -8,5 +8,5 @@ p, admin, /v1/getclusterdetail/*, GET
 p, admin, /v1/getallclustersdetail/*, GET
 p, admin, /v1/waitforready/*, GET
 p, admin, /v1/event/*, POST
-p, admin, /v1/runjob, POST
+p, admin, /v1/kubejob/*, POST
 g, circleci, admin
