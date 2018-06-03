@@ -3,14 +3,17 @@ package main
 import (
 	//"reflect"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	//"io/ioutil"
 	"crypto/tls"
-	"github.com/creamdog/gonfig"
-	"github.com/gorilla/mux"
+	"crypto/x509"
 	"net/http"
 	"strings"
+
+	"github.com/creamdog/gonfig"
+	"github.com/gorilla/mux"
 )
 
 var config gonfig.Gonfig
@@ -69,15 +72,15 @@ func main() {
 
 	//
 	// Read application config from file
-	f, err := os.Open("config.yaml")
+	f, err := os.Open("config-sample.yaml")
 	if err != nil {
-		LogError.Println("Error configuration file: %v\n", err)
+		LogError.Printf("Error configuration file: %v\n", err)
 		os.Exit(1)
 	}
 	defer f.Close()
 	config, err = gonfig.FromYml(f)
 	if err != nil {
-		LogError.Println(os.Stderr, "Error configuration file: %v\n", err)
+		LogError.Printf("Error configuration file: %v\n", err)
 		os.Exit(1)
 	}
 	//fmt.Println(reflect.TypeOf(config))
@@ -87,6 +90,13 @@ func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	setRoutes(router)
+
+	sslcert, _ := config.GetString("https/certificate", "server.crt")
+	sslkey, _ := config.GetString("https/key", "server.key")
+
+	caCertBytes, _ := ioutil.ReadFile(sslcert)
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCertBytes)
 
 	cfg := &tls.Config{
 		MinVersion:               tls.VersionTLS12,
@@ -111,6 +121,9 @@ func main() {
 			tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,
 			tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
 		},
+		// Client TLS requests
+		ClientCAs:  caCertPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
 	}
 	//server_port, err := config.GetString("https/port", 8443)
 	//server_addr := fmt.Sprintf("%v:%v", "", server_port)
@@ -129,10 +142,8 @@ func main() {
 		TLSConfig:    cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
-	ssl_cert, err := config.GetString("https/certificate", "server.crt")
-	ssl_key, err := config.GetString("https/key", "server.key")
 
-	log.Fatal(srv.ListenAndServeTLS(ssl_cert, ssl_key))
+	log.Fatal(srv.ListenAndServeTLS(sslcert, sslkey))
 	//log.Fatal(http.ListenAndServe(":8080", router))
 
 }
