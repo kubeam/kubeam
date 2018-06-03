@@ -1,16 +1,12 @@
 package main
 
 import (
-	//"reflect"
-	//"bytes"
-	//"time"
-	//"os/exec"
-	//"strings"
-	"github.com/gorilla/mux"
 	"net/http"
-	//"github.com/bitly/go-simplejson"
+
+	"github.com/gorilla/mux"
 )
 
+/*ApplicationGetClusterDetail ...*/
 func ApplicationGetClusterDetail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	application := vars["application"]
@@ -23,13 +19,12 @@ func ApplicationGetClusterDetail(w http.ResponseWriter, r *http.Request) {
 		str := `{"status": "error", "description": "Unable to select cluster"}`
 		w.Write([]byte(str))
 		return
-	} else {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(clusterList))
-
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(clusterList))
 }
 
+/*ApplicationGetAllClustersDetail ...*/
 func ApplicationGetAllClustersDetail(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	application := vars["application"]
@@ -41,13 +36,12 @@ func ApplicationGetAllClustersDetail(w http.ResponseWriter, r *http.Request) {
 		str := `{"status": "error", "description": "Unable get detail on environment"}`
 		w.Write([]byte(str))
 		return
-	} else {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(clusterList))
-
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(clusterList))
 }
 
+/*ApplicationListClusters ...*/
 func ApplicationListClusters(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	application := vars["application"]
@@ -60,9 +54,7 @@ func ApplicationListClusters(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(str))
 		//w.Write([]byte( "ERROR: Unable to select cluster for specified environment, No free slots?\n" ))
 		return
-	} else {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(clusterList))
-
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(clusterList))
 }

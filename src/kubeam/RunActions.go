@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,11 +12,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type ApiList struct {
+//APIList describes the list of APIs for the application
+type APIList struct {
 	Description string
 	Application map[string][]map[string]interface{}
 }
 
+// Keys ...
 func Keys(m map[string][]string) (keys []string) {
 	for k := range m {
 		keys = append(keys, k)
@@ -25,6 +26,8 @@ func Keys(m map[string][]string) (keys []string) {
 	return keys
 }
 
+/*IsClusterInList checks if given cluster is in the given environment
+in the cluster list definition*/
 func IsClusterInList(environment, cluster, m interface{}) bool {
 	ms := make(map[string]interface{})
 
@@ -44,33 +47,33 @@ func IsClusterInList(environment, cluster, m interface{}) bool {
 	return false
 }
 
-/*
-* We load Api definitions from file every time work needs to be done.
-* A future enhancement will be to preload this so that we don't need to keep ready from disk
- */
-func GetApiActions(api string, application string, m map[string]interface{}) ([]map[string]interface{}, error) {
-	var myapi ApiList
+/*GetAPIActions loads API definitions from file every time work needs to be done.
+A future enhancement will be to preload this so that we don't need to keep ready from disk*/
+func GetAPIActions(api string, application string, m map[string]interface{}) ([]map[string]interface{}, error) {
+	var myapi APIList
 
 	fmt.Printf("Load Api for application %v\n", application)
 	// yamlFile, err := ioutil.ReadFile(fmt.Sprintf("%v.yaml", application))
 	// if err != nil {
 	// 	return nil, errors.New(fmt.Sprintf("Could not find a cluster definition for api %v ", application))
 	// }
-	rendered := []byte(render_template(fmt.Sprintf("applications/%v/api.yaml", application), m))
+	rendered := []byte(RenderTemplate(fmt.Sprintf("applications/%v/api.yaml", application), m))
 	err := yaml.Unmarshal(rendered, &myapi)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to parse %v", application))
+		return nil, fmt.Errorf("Failed to parse %v", application)
 	}
 
-	for kubeamApi, actionsMap := range myapi.Application {
-		if strings.ToLower(kubeamApi) == api {
+	for kubeamAPI, actionsMap := range myapi.Application {
+		if strings.ToLower(kubeamAPI) == api {
 			return actionsMap, nil
 		}
 
 	}
-	return nil, errors.New(fmt.Sprintf("Api %v not found for application %v", api, application))
+	return nil, fmt.Errorf("API %v not found for application %v", api, application)
 }
 
+/*ExecCmd executions the input command and argumets on the command line and
+returns the output*/
 func ExecCmd(cmdName string, cmdArgs []string) ([]byte, error) {
 	LogDebug.Println("Running: ", cmdName, fmt.Sprintln(strings.Join(cmdArgs, " ")))
 	cmdOut, err := exec.Command(cmdName, cmdArgs...).Output()
@@ -81,10 +84,8 @@ func ExecCmd(cmdName string, cmdArgs []string) ([]byte, error) {
 		LogError.Println("Running: ", cmdName, fmt.Sprintln(strings.Join(cmdArgs, " ")))
 		LogError.Println(err.Error())
 		return nil, err
-	} else {
-		return cmdOut, err
 	}
-
+	return cmdOut, err
 }
 
 type actionOutput struct {
@@ -95,12 +96,13 @@ type actionOutput struct {
 	Log      string `json:"Log"`
 }
 
+/*RunActions ...*/
 func RunActions(api string, vars map[string]interface{}) (map[string]interface{}, error) {
 	app := vars["application"].(string)
 	env := vars["environment"].(string)
 	cluster := vars["cluster"].(string)
 
-	ret, err := GetApiActions(api, app, vars)
+	ret, err := GetAPIActions(api, app, vars)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +139,7 @@ func RunActions(api string, vars map[string]interface{}) (map[string]interface{}
 			var tmpfile *os.File
 			_, ok := actionsItem["file"]
 			if ok {
-				rendered := []byte(render_template(fmt.Sprintf("applications/%v/%v", app, actionsItem["file"].(string)), vars))
+				rendered := []byte(RenderTemplate(fmt.Sprintf("applications/%v/%v", app, actionsItem["file"].(string)), vars))
 
 				tmpfile, err = ioutil.TempFile("tmp/", fmt.Sprintf("%s.rendered.", path.Base(actionsItem["file"].(string))))
 				if err != nil {
@@ -179,7 +181,7 @@ func RunActions(api string, vars map[string]interface{}) (map[string]interface{}
 			}
 			if tmpfile != nil {
 				if err := tmpfile.Close(); err != nil {
-					LogWarning.Println(os.Stderr, err)
+					LogError.Println(err)
 				}
 			}
 			actionsOutput["actions"] = append(actionsOutput["actions"], currActionOutput)

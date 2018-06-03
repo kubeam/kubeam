@@ -48,8 +48,8 @@ func GetExternalEndpoints(service *api.Service) []Endpoint {
 	return externalEndpoints
 }
 
-// GetInternalEndpoint returns internal endpoint name for the given service properties, e.g.,
-// "my-service.namespace 80/TCP" or "my-service 53/TCP,53/UDP".
+/*GetInternalEndpoint returns internal endpoint name for the given service properties,
+e.g, "my-service.namespace 80/TCP" or "my-service 53/TCP,53/UDP"*/
 func GetInternalEndpoint(serviceName, namespace string, ports []api.ServicePort) Endpoint {
 	name := serviceName
 

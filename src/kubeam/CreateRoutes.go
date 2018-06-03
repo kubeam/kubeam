@@ -1,8 +1,6 @@
 package main
 
 import (
-	//"reflect"
-
 	"encoding/json"
 	"net/http"
 	"time"
@@ -10,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+/*ApplicationCreate ...*/
 func ApplicationCreate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 

@@ -15,21 +15,28 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//LookupList describes cluster lookup list
 type LookupList struct {
 	Description string
 	Lookup      map[string]map[string]string
 }
 
 const (
-	LOOKUP_FILE          = iota + 1
-	LOOKUP_KEY           = iota + 1
-	LOOKUP_SUBKEY        = iota + 1
-	LOOKUP_DEFAULT_VALUE = iota + 1
+	//LookupFile ...
+	LookupFile = iota + 1
+	//LookupKey ...
+	LookupKey = iota + 1
+	//LookupSubkey ...
+	LookupSubkey = iota + 1
+	//LookupDefaultValue ...
+	LookupDefaultValue = iota + 1
 )
 
-func render_template(tmpl_file string, pairs map[string]interface{}) string {
+/*RenderTemplate reads and parses the yaml file with the application
+resource values*/
+func RenderTemplate(tmpfile string, pairs map[string]interface{}) string {
 
-	file, err := os.Open(tmpl_file)
+	file, err := os.Open(tmpfile)
 	if err != nil {
 		LogWarning.Println(err)
 	}
@@ -50,7 +57,7 @@ func render_template(tmpl_file string, pairs map[string]interface{}) string {
 					continue
 				}
 
-				includeFileName := fmt.Sprintf("%s/%s", path.Dir(tmpl_file), match[1])
+				includeFileName := fmt.Sprintf("%s/%s", path.Dir(tmpfile), match[1])
 				includeContent, err := ioutil.ReadFile(includeFileName)
 				if err != nil {
 					LogWarning.Println(err)
@@ -59,12 +66,12 @@ func render_template(tmpl_file string, pairs map[string]interface{}) string {
 				LogDebug.Println("includeContent", string(includeContent))
 				srcContent.WriteString(string(includeContent))
 			} else {
-				LogWarning.Println("Found incomplete tag in include from file ", tmpl_file)
+				LogWarning.Println("Found incomplete tag in include from file ", tmpfile)
 			}
-		} else if strings.Index(t, "<%lookup_file:") > -1 {
-			LogDebug.Println("Rendering lookup_file")
+		} else if strings.Index(t, "<%LookupFile:") > -1 {
+			LogDebug.Println("Rendering LookupFile")
 			var lookup LookupList
-			re := regexp.MustCompile("\\<\\%lookup_file:(.*?),(.*?),(.*?),(.*?)\\%\\>")
+			re := regexp.MustCompile("\\<\\%LookupFile:(.*?),(.*?),(.*?),(.*?)\\%\\>")
 
 			/*
 				//
@@ -76,7 +83,7 @@ func render_template(tmpl_file string, pairs map[string]interface{}) string {
 			// Create a new template and parse the letter into it.
 			// Get the Sprig function map.
 			fmap := sprig.TxtFuncMap()
-			var tmpl = template.Must(template.New("lookup_file").Funcs(fmap).Parse(t))
+			var tmpl = template.Must(template.New("LookupFile").Funcs(fmap).Parse(t))
 
 			var bytes bytes.Buffer
 			writer := bufio.NewWriter(&bytes)
@@ -87,41 +94,41 @@ func render_template(tmpl_file string, pairs map[string]interface{}) string {
 			err = writer.Flush()
 			check(err)
 
-			LogDebug.Println(bytes.String)
+			LogDebug.Println(bytes.String())
 
 			match := re.FindStringSubmatch(bytes.String())
 
 			if len(match) == 0 {
-				LogError.Println("invalid lookup_file: syntax ", t)
+				LogError.Println("invalid LookupFile: syntax ", t)
 				//BUG/FIX: Should push up a error to rest calling function
 				continue
 			}
 
-			LogDebug.Println("lookup_file: ", match[LOOKUP_FILE])
-			LogDebug.Println("lookup_key: ", match[LOOKUP_KEY])
-			LogDebug.Println("lookup_subkey: ", match[LOOKUP_SUBKEY])
-			LogDebug.Println("lookup_default_value: ", match[LOOKUP_DEFAULT_VALUE])
+			LogDebug.Println("LookupFile: ", match[LookupFile])
+			LogDebug.Println("LookupKey: ", match[LookupKey])
+			LogDebug.Println("LookupSubkey: ", match[LookupSubkey])
+			LogDebug.Println("LookupDefaultValue: ", match[LookupDefaultValue])
 
-			yamlFile, err := ioutil.ReadFile(fmt.Sprintf(match[LOOKUP_FILE]))
+			yamlFile, err := ioutil.ReadFile(fmt.Sprintf(match[LookupFile]))
 			if err != nil {
-				LogError.Println("reading lookup_file ", match[LOOKUP_FILE])
+				LogError.Println("reading LookupFile ", match[LookupFile])
 				//return "", errors.New(fmt.Sprintf( "Could not lockup file: %v", match) )
 			}
 
 			err = yaml.Unmarshal(yamlFile, &lookup)
 			check(err)
 
-			var lookup_value string
+			var lookupvalue string
 			var ok bool
 			LogDebug.Println(lookup.Lookup)
-			if lookup_value, ok = lookup.Lookup[match[LOOKUP_KEY]][match[LOOKUP_SUBKEY]]; ok {
-				LogDebug.Println("Found lookup value in file :", lookup_value)
+			if lookupvalue, ok = lookup.Lookup[match[LookupKey]][match[LookupSubkey]]; ok {
+				LogDebug.Println("Found lookup value in file :", lookupvalue)
 			} else {
-				lookup_value = match[LOOKUP_DEFAULT_VALUE]
-				LogDebug.Println("Using default lookup Value :", lookup_value)
+				lookupvalue = match[LookupDefaultValue]
+				LogDebug.Println("Using default lookup Value :", lookupvalue)
 			}
 
-			srcContent.WriteString(re.ReplaceAllString(bytes.String(), lookup_value))
+			srcContent.WriteString(re.ReplaceAllString(bytes.String(), lookupvalue))
 
 		} else {
 			srcContent.WriteString(t)

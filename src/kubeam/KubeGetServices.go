@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	apiv1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"strings"
-	//"k8s.io/apimachinery/pkg/labels"
+
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubernetes "k8s.io/client-go/kubernetes"
+	rest "k8s.io/client-go/rest"
 )
 
+/*KubeGetServices ...*/
 func KubeGetServices(filter string) (map[string]interface{}, error) {
 	resources := map[string]interface{}{}
 	// creates the in-cluster config
@@ -39,7 +40,7 @@ func KubeGetServices(filter string) (map[string]interface{}, error) {
 
 		serviceEndpoints := GetExternalEndpoints(&service)
 
-		LogInfo.Println("serviceEndpoints : %v ", serviceEndpoints)
+		LogInfo.Printf("serviceEndpoints : %v ", serviceEndpoints)
 
 		//          // labels.Parser
 		//          //set := labels.Set(service.Spec.Selector)
@@ -69,15 +70,15 @@ func KubeGetServices(filter string) (map[string]interface{}, error) {
 			podout["replicas"] = d.Spec.Replicas
 
 			//set := labels.Set(d.Spec.Selector)
-			selector, err_s := metav1.LabelSelectorAsSelector(d.Spec.Selector)
-			if err_s != nil {
-				return resources, fmt.Errorf("invalid label selector: %v", err_s)
+			selector, err := metav1.LabelSelectorAsSelector(d.Spec.Selector)
+			if err != nil {
+				return resources, fmt.Errorf("invalid label selector: %v", err)
 			}
 
 			//if pods, err := clientset.Core().Pods(name).List(metav1.ListOptions{LabelSelector: set.AsSelector()}); err != nil {
 			if pods, err := clientset.Core().Pods(name).List(metav1.ListOptions{LabelSelector: selector.String()}); err != nil {
 				//LogError.Printf("List Pods of service[%s] error:%v", service.GetName(), err)
-				LogError.Println("Errog getting Pods of deployment [%v] error:%v", d.Name, err)
+				LogError.Printf("Errog getting Pods of deployment [%v] error:%v", d.Name, err)
 			} else {
 				podList := map[string]interface{}{}
 				for _, v := range pods.Items {

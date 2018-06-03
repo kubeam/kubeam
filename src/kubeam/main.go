@@ -19,13 +19,19 @@ import (
 var config gonfig.Gonfig
 
 var (
-	LogTrace   *log.Logger
-	LogDebug   *log.Logger
-	LogInfo    *log.Logger
+	//LogTrace ...
+	LogTrace *log.Logger
+	//LogDebug ...
+	LogDebug *log.Logger
+	//LogInfo ...
+	LogInfo *log.Logger
+	//LogWarning ...
 	LogWarning *log.Logger
-	LogError   *log.Logger
+	//LogError ...
+	LogError *log.Logger
 )
 
+/*InitLogger initializes different logging handlers*/
 func InitLogger(
 	traceHandle io.Writer,
 	debugHandle io.Writer,
@@ -54,6 +60,7 @@ func InitLogger(
 		log.Ldate|log.Ltime|log.Lshortfile)
 }
 
+/*LowerCaseURI returns a lower cases converted URL path*/
 func LowerCaseURI(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = strings.ToLower(r.URL.Path)

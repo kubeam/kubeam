@@ -1,22 +1,20 @@
 package main
 
 import (
-	//"reflect"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"strings"
 	//"k8s.io/client-go/tools/clientcmd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 )
 
-////
-// get Status of specified resources.
-// Iteracting over each type of app
-///
+/*GetResourceStatus get Status of specified resources.
+Iteracting over each type of app*/
 func GetResourceStatus(parms map[string]string, resourcePostfix []string) ([]byte, error) {
 	application := parms["application"]
 	appEnv := parms["environment"]

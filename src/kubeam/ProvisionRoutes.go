@@ -1,10 +1,8 @@
 package main
 
 import (
-	//"reflect"
 	"encoding/json"
 	"fmt"
-	//"bytes"
 	"net/http"
 	"os/exec"
 	"time"
@@ -13,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+/*ApplicationStatus fetches the status of kubernetes application*/
 func ApplicationStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -29,13 +28,13 @@ func ApplicationStatus(w http.ResponseWriter, r *http.Request) {
 		"appweb",
 		"adminweb",
 	})
-	//payload := cmdOut
 
 	//w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Type", "application/text")
 	w.Write(payload)
 }
 
+/*SelfProvision ...*/
 func SelfProvision(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -70,9 +69,8 @@ func SelfProvision(w http.ResponseWriter, r *http.Request) {
 		"applications/kubeam/kubeam-redis-service.yaml",
 	})
 
-	//
 	// Due to redis using persistant storage We should not use replace configuration.
-	// BUG/FIX: Untill we have detection of what is already running. We issue a Create (if already exists just silently failes
+	// BUG/FIX: Until we have detection of what is already running. We issue a Create (if already exists just silently failes
 	CreateResources(vars, []string{
 		"applications/kubeam/kubeam-service.yaml",
 		"applications/kubeam/kubeam-redis-deployment.yaml",
@@ -94,6 +92,7 @@ func SelfProvision(w http.ResponseWriter, r *http.Request) {
 	w.Write(payload)
 }
 
+/*ApplicationProvision is a wrapper to deploy applications to kubernetes*/
 func ApplicationProvision(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	application := vars["application"]
@@ -138,9 +137,9 @@ func ApplicationProvision(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	}
 	LogInfo.Println(actionsOutput)
-
 }
 
+/*ApplicationDelete is a wrapper to delete kuberbetes deployment*/
 func ApplicationDelete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -160,9 +159,9 @@ func ApplicationDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	LogInfo.Println(actionsOutput)
-
 }
 
+/*ApplicationUpdate ...*/
 func ApplicationUpdate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	application := vars["application"]
@@ -192,5 +191,4 @@ func ApplicationUpdate(w http.ResponseWriter, r *http.Request) {
 
 	//w.Header().Set("Content-Type", "application/text")
 	w.Write(payload)
-
 }
