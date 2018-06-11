@@ -1,5 +1,6 @@
 p, , /health-check, GET
 p, , /, GET
+p, admin, /health-check, GET
 p, admin, /v1/create/*, *
 p, admin, /v1/provision/*, *
 p, admin, /v1/deploy/*, *
