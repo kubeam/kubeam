@@ -9,18 +9,20 @@ application:
    resource: "{{.environment}}-kubeam"
    file: 00_create_namespace.yaml
    namespace: {{.environment}}-kubeam
- #- name: kubeam-mysql-pvc 
- #  type: PersistentVolumeClaim
- #  action: create
- #  resource: "{{.environment}}-kubeam-mysql-pvc"
- #  file: 00_mysql-volume-claim.yaml
- #  namespace: {{.environment}}-kubeam
- #- name: {{.environment}}-kubeam-redis-pvc 
- #  type: PersistentVolumeClaim
- #  action: create
- #  resource: "{{.environment}}-kubeam-redis-pvc"
- #  file: 00_redis-volume-claim.yaml
- #  namespace: {{.environment}}-kubeam
+{{- if (eq .environment "minikube") -}}
+ - name: kubeam-mysql-pvc 
+   type: PersistentVolumeClaim
+   action: create
+   resource: "{{.environment}}-kubeam-mysql-pvc"
+   file: 00_mysql-volume-claim.yaml
+   namespace: {{.environment}}-kubeam
+ - name: {{.environment}}-kubeam-redis-pvc 
+   type: PersistentVolumeClaim
+   action: create
+   resource: "{{.environment}}-kubeam-redis-pvc"
+   file: 00_redis-volume-claim.yaml
+   namespace: {{.environment}}-kubeam
+{{- end -}}
  - name: {{.environment}}-kubeam-mysql 
    type: StatefulSet 
    action: create
@@ -33,12 +35,14 @@ application:
    resource: "{{.environment}}-kubeam-mysql-service"
    file: 02_mysql-service.yaml
    namespace: {{.environment}}-kubeam
- #- name: {{.environment}}-kubeam-redis
- #  type: StatefulSet
- #  action: create
- #  resource: "{{.environment}}-kubeam-redis"
- #  file: kubeam-redis-statefulset.yaml
- #  namespace: {{.environment}}-kubeam
+{{- if (eq .environment "minikube") -}}
+ - name: {{.environment}}-kubeam-redis
+   type: StatefulSet
+   action: create
+   resource: "{{.environment}}-kubeam-redis"
+   file: kubeam-redis-statefulset.yaml
+   namespace: {{.environment}}-kubeam
+{{- end -}}
  - name: {{.environment}}-kubeam-redis-service
    type: Service
    action: create
