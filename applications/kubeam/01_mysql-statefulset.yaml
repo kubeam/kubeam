@@ -14,7 +14,7 @@ spec:
       labels:
         app: {{.environment}}-kubeam-mysql # has to match .spec.selector.matchLabels
     spec:
-{{- if not (eq .environment "minikube") -}}
+{{- if not (eq .environment "minikube") }}
       nodeSelector:
         kops.k8s.io/instancegroup: persistent
 {{- end }}
@@ -40,11 +40,11 @@ spec:
             port: 3306
           initialDelaySeconds: 5
           periodSeconds: 10
-{{- if not (eq .environment "minikube") -}}
+{{- if not (eq .environment "minikube") }}
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: mysqldb
-{{- end -}}
+{{- end }}
         resources:
           limits:
             cpu: 100m
@@ -59,9 +59,9 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: mysqldb
-{{- if not (eq .environment "minikube") -}}
+{{- if not (eq .environment "minikube") }}
       volumes:
         - name: mysqldb
           persistentVolumeClaim:
             claimName: {{.environment}}-kubeam-mysql-pvc
-{{- end -}}
+{{- end }}
