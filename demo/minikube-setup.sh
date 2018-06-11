@@ -18,7 +18,7 @@ function die()
 
 ##
 ## Cisco Anyconnect Umbrella breaks minikube
-bash enable-umbrella-dns.sh
+bash disable-umbrella-dns.sh
 
 
 ##
@@ -92,4 +92,6 @@ fi
 ##
 ## Install registry
 /usr/local/bin/kubectl config use-context minikube
+echo "Waiting 10 seconds for minikube to be ready..."
+sleep 10
 /usr/local/bin/kubectl apply -f minikube-resitry.yaml 
