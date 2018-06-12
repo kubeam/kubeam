@@ -17,37 +17,33 @@ spec:
         role: master
       name: kubeam-redis
     spec:
+{{- if not (eq .environment "minikube") }}
       nodeSelector:
         kops.k8s.io/instancegroup: persistent
-      securityContext:
-        runAsUser: 997
-        fsGroup: 2000
+{{- end }}
       containers:
         - name: master
           image: redis
+{{- if not (eq .environment "minikube") }}
           resources:
             limits:
               memory: "2Gi"
             requests:
               memory: "2Gi"
+{{- end }}
           env:
             - name: MASTER
               value: "true"
           ports:
             - containerPort: 6379
+          args:
+            - "--appendonly yes"
           resources:
 {{- if not (eq .environment "minikube") }}
           volumeMounts:
             - mountPath: /redis-master-data
               name: data
 {{- end }}
-        - name: sentinel
-          image: my.registry/redis:latest
-          env:
-            - name: SENTINEL
-              value: "true"
-          ports:
-            - containerPort: 26379
 {{- if not (eq .environment "minikube") }}
       volumes:
         - name: data
