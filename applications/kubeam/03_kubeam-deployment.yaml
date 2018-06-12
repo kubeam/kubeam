@@ -13,14 +13,18 @@ spec:
       #serviceAccountName: {{.environment}}-kubeam
       containers:
       - name: kubeam
-        image: 475968958217.dkr.ecr.us-west-2.amazonaws.com/sbg/kubeam:{{.tag}}
+{{- if not (eq .environment "minikube" ) }}
+        image: my.registry/kubeam:{{.tag}}
+{{- else }}
+        image: localhost:5000/kubeam:{{.tag}}
+{{- end }}
         imagePullPolicy: Always
         command: ["/bin/sh"]
-{{- if not (eq .environment "minikube") -}}
+{{- if not (eq .environment "minikube") }}
         args: ["-c", "cp -vf /secrets/kubeam-conf /config.yaml;/kubeam"]
-{{- else -}}
+{{- else }}
         args: ["-c", "/kubeam"]
-{{- end - }}
+{{- end  }}
         #env:
         #- name: KUBECONFIG
         #  value: "/secrets/kube-conf"
@@ -61,4 +65,4 @@ spec:
         - name: kubeam-clusters
           secret:
             secretName: {{.environment}}-kubeam-clusters
-{{- end -}}
+{{- end }}

@@ -12,5 +12,18 @@ templates:
     datasource: datasource.ini
     action: create
     mode: 644
+  03_kubeam-deployment.yaml:
+    template: 03_kubeam-deployment.yaml
+    destination: /tmp/03_kubeam-deployment.yaml
+    datasource: datasource.ini
+    action: create
+    mode: 644
+  04_kubeam-service.yaml:
+    template: 04_kubeam-service.yaml
+    destination: /tmp/04_kubeam-service.yaml
+    datasource: datasource.ini
+    action: create
+    mode: 644
+
 
 

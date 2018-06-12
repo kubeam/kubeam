@@ -18,9 +18,9 @@ spec:
     app: {{.environment}}-kubeam
   ##
   ## Exteral valancer
-{{- if (eq .environment "minikube") -}}
+{{- if (eq .environment "minikube") }}
   type: NodePort
-{{- else -}}
+{{- else }}
   type: LoadBalancer
 <%file:load-balancer-sources.include%> 
 {{- end }}

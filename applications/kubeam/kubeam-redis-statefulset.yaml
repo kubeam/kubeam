@@ -36,21 +36,21 @@ spec:
           ports:
             - containerPort: 6379
           resources:
-{{- if not (eq .environment "minikube") -}}
+{{- if not (eq .environment "minikube") }}
           volumeMounts:
             - mountPath: /redis-master-data
               name: data
-{{- end -}}
+{{- end }}
         - name: sentinel
-          image: 475968958217.dkr.ecr.us-west-2.amazonaws.com/sbg/redis:latest
+          image: my.registry/redis:latest
           env:
             - name: SENTINEL
               value: "true"
           ports:
             - containerPort: 26379
-{{- if not (eq .environment "minikube") -}}
+{{- if not (eq .environment "minikube") }}
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: {{.environment}}-kubeam-redis-pvc
-{{- end -}}
+{{- end }}
