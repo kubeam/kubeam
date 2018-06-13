@@ -1,7 +1,6 @@
 bash build.sh null
 docker build -f Dockerfile-kubeam.dkr . -t kubeam
-docker-compose rm
-docker-compose up
+docker-compose up --build
 # docker run -d -p 7000:3306 -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_DATABASE=kubeam mariadb:10
 # docker run -d -p 6000:6379 redis
 # docker run -d -p 8443:443 kubeam
