@@ -26,10 +26,22 @@ spec:
         - containerPort: 3306
         env:
         - name: MYSQL_ROOT_PASSWORD
+{{- if not (eq .environment "minikube") }}
           valueFrom:
             secretKeyRef:
               name: ci-kubeam-mysql
               key: mysql-password
+{{- else }}
+          value: "123456"
+{{- end }}
+{{- if (eq .environment "minikube") }}
+        - name: MYSQL_DATABASE
+          value: "kubeam"
+        - name: MYSQL_USER
+          value: "kubeam"
+        - name: MYSQL_PASSWORD
+          value: "123456"
+{{- end }}
         readinessProbe:
           tcpSocket:
             port: 3306
@@ -55,10 +67,12 @@ spec:
       initContainers:
       - name: init-mysql
         image: busybox
-        command: ['sh', '-c', 'chown 999:999 /var/lib/mysql']
+        command: ['sh', '-c', '[ -d /var/lib/mysql ] && chown 999:999 /var/lib/mysql; exit 0']
+{{- if not (eq .environment "minikube") }}
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: mysqldb
+{{- end }}
 {{- if not (eq .environment "minikube") }}
       volumes:
         - name: mysqldb
