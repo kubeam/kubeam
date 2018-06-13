@@ -37,9 +37,7 @@ GOBIN=$GOPATH/bin && \
 ( [  -L  $GOPATH/src/kubeam ]  && rm $GOPATH/src/kubeam) 
 ( [  -L  $GOPATH/src/isakonf ]  && rm $GOPATH/src/isakonf) 
 
-kubeAM_source="ClusterSelector.go CreateRoutes.go ProvisionRoutes.go main.go router.go 
-    CreateResources.go GetResourceStatus.go auth.go root_routes.go template.go"
-kubeAMScheduler_source="TaskScheduler.go SchedulerMain.go SchedulerRouter.go"
+curl -L -o kubectl.linux https://storage.googleapis.com/kubernetes-release/release/v1.7.0/bin/linux/amd64/kubectl
 
 CURR_DIR=`pwd`
 #for a in kubeam isakonf; do

@@ -1,0 +1,25 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{.environment}}-kubeam-mysql-pvc
+  namespace: {{.environment}}-kubeam
+{{- if not (eq .environment "minikube") }}
+  labels:
+    type: amazonEBS
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ssd
+  resources:
+    requests:
+      storage: 100Gi
+      storage: 1Mb
+{{- else }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Mb
+  hostPath:
+    path: /data/kubeam-mysql-pvc/
+{{- end }}

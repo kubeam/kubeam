@@ -1,0 +1,29 @@
+description: Sample configuration files
+templates:
+  01_mysql-statefullset.yaml:
+    template: 01_mysql-statefulset.yaml
+    destination: /tmp/mysql-statefullset.yaml
+    datasource: datasource.ini
+    action: create
+    mode: 644
+  kubeam-redis-statefulset.yaml:
+    template: kubeam-redis-statefulset.yaml
+    destination: /tmp/kubeam-redis-statefulset.yaml
+    datasource: datasource.ini
+    action: create
+    mode: 644
+  03_kubeam-deployment.yaml:
+    template: 03_kubeam-deployment.yaml
+    destination: /tmp/03_kubeam-deployment.yaml
+    datasource: datasource.ini
+    action: create
+    mode: 644
+  04_kubeam-service.yaml:
+    template: 04_kubeam-service.yaml
+    destination: /tmp/04_kubeam-service.yaml
+    datasource: datasource.ini
+    action: create
+    mode: 644
+
+
+

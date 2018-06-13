@@ -1,0 +1,81 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{.environment}}-kubeam-mysql
+  namespace: {{.environment}}-kubeam
+spec:
+  selector:
+    matchLabels:
+      app: {{.environment}}-kubeam-mysql # has to match .spec.template.metadata.labels
+  serviceName: "{{.environment}}-kubeam-mysql"
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: {{.environment}}-kubeam-mysql # has to match .spec.selector.matchLabels
+    spec:
+{{- if not (eq .environment "minikube") }}
+      nodeSelector:
+        kops.k8s.io/instancegroup: persistent
+{{- end }}
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: mysql-server
+        image: mariadb:10
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+{{- if not (eq .environment "minikube") }}
+          valueFrom:
+            secretKeyRef:
+              name: ci-kubeam-mysql
+              key: mysql-password
+{{- else }}
+          value: "123456"
+{{- end }}
+{{- if (eq .environment "minikube") }}
+        - name: MYSQL_DATABASE
+          value: "kubeam"
+        - name: MYSQL_USER
+          value: "kubeam"
+        - name: MYSQL_PASSWORD
+          value: "123456"
+{{- end }}
+        readinessProbe:
+          tcpSocket:
+            port: 3306
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 3306
+          initialDelaySeconds: 5
+          periodSeconds: 10
+{{- if not (eq .environment "minikube") }}
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysqldb
+{{- end }}
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+      initContainers:
+      - name: init-mysql
+        image: busybox
+        command: ['sh', '-c', '[ -d /var/lib/mysql ] && chown 999:999 /var/lib/mysql; exit 0']
+{{- if not (eq .environment "minikube") }}
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: mysqldb
+{{- end }}
+{{- if not (eq .environment "minikube") }}
+      volumes:
+        - name: mysqldb
+          persistentVolumeClaim:
+            claimName: {{.environment}}-kubeam-mysql-pvc
+{{- end }}
