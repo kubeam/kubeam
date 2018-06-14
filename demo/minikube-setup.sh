@@ -17,8 +17,13 @@ function die()
 
 
 ##
-## Cisco Anyconnect Umbrella breaks minikube
-bash disable-umbrella-dns.sh
+## Cisco Anyconnect Umbrella breaks minikube dns resolution
+if [ -f /Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist ]; then
+  if sudo launchctl list  | grep RoamingClientConfigUpdater; then
+    echo "Dissabling Umbrella DNS for minikube startup"
+    sudo launchctl unload /Library/LaunchDaemons/com.opendns.osx.RoamingClientConfigUpdater.plist
+  fi
+fi
 
 
 ##
