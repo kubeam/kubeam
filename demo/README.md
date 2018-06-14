@@ -1,7 +1,6 @@
 
 ## Setup minikube with a local registry
-`cd demo  bash minikube-setup.sh`  
-`cd ..`  
+`bash demo/minikube-setup.sh`  
 
 ## set minikube as your registry.
 `source demo/set-registry.sh`  
