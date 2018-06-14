@@ -6,6 +6,7 @@
 `source demo/set-registry.sh`  
 
 ## Build KubeAM, docker and push to minikube registry
+`bash build.sh kubeam`  
 `bash download-kubectl.sh`  
 `cp config-sample.yaml config.yaml`  
 `docker build -f Dockerfile-kubeam.dkr . -t localhost:5000/kubeam`  
