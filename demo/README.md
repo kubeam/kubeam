@@ -20,3 +20,29 @@
 
 ## Deploy full kubeAM stack
 `curl -X POST -k $(minikube service kubeamservice --format "https://admin:123456@{{.IP}}:{{.Port}}" --url)/v1/create/kubeam/minikube/main/latest`
+## Sample app work flow sample
+
+### Build Sample app
+cd ~/kubeam-demo/springboot-jsp  
+mvn package  
+docker build . -t localhost:5000/springboot-jsp:001  
+docker push localhost:5000/springboot-jsp:001  
+
+### Deploy springboot-jsp sample app (Once is build and docker available
+`curl -X POST -k $(minikube service kubeamservice --format "https://admin:123456@{{.IP}}:{{.Port}}" --url)/v1/create/springboot-jsp/dev/main/001`  
+
+### Open deployed service
+minikube --namespace dev-springboot-jsp service dev-springboot-jsp-service
+
+### build new version and deploy
+(In springboot-jsp repo)
+mvn package  
+docker build . -t localhost:5000/springboot-jsp:002
+docker push localhost:5000/springboot-jsp:002
+`curl -X POST -k $(minikube service kubeamservice --format "https://admin:123456@{{.IP}}:{{.Port}}" --url)/v1/deploy/springboot-jsp/dev/main/002`  
+
+### Test your application
+`curl $(minikube --namespace dev-springboot-jsp service dev-springboot-jsp-service --url)`  
+
+
+
