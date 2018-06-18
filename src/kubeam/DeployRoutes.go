@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/*ApplicationDeploy ...*/
+/*ApplicationDeploy replaces the existing application on the cluster*/
 func ApplicationDeploy(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	//    application := vars["application"]
@@ -32,12 +32,10 @@ func ApplicationDeploy(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		outputJSON, _ := json.MarshalIndent(actionsOutput, "", " ")
 		w.Write(outputJSON)
-		//w.Header().Set("Content-Type", "application/text")
 
 		if err != nil {
+			w.Header().Set("Content-Type", "application/text")
 			w.Write([]byte(err.Error()))
 		}
-		// //w.Write(payload)
-		// LogInfo.Println(actionsOutput)
 	}
 }

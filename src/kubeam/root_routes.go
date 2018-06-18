@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-/*Index ...*/
+/*Index default routes*/
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "These aren't the droids you're looking for.")
 }

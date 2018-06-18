@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-/*ClusterList struct used for responses with description of clusters*/
+/*ClusterList struct describes responses with description of clusters*/
 type ClusterList struct {
 	Description string
 	Clusters    map[string]map[string]string
@@ -42,7 +42,8 @@ func NewDBClient() *redis.Client {
 	return (client)
 }
 
-/*DBClientReserveCluster ...*/
+/*DBClientReserveCluster updates the redis cache and allocates the cluster
+to the incoming resource*/
 func DBClientReserveCluster(client *redis.Client, app string, env string, key string, val []byte, t time.Duration) error {
 	err := client.Set(fmt.Sprintf("%v-%v-%v", app, env, key), val, t).Err()
 	//first slice then convert to string (string is a read-only slice of bytes)
@@ -54,7 +55,8 @@ func DBClientReserveCluster(client *redis.Client, app string, env string, key st
 	return nil
 }
 
-/*DBClientFindAndReserve ...*/
+/*DBClientFindAndReserve is a wrapper to find a free cluster and update the
+cache of used clusters*/
 func DBClientFindAndReserve(client *redis.Client, app string, env string, ttl time.Duration) (string, error) {
 
 	var clusters ClusterList
@@ -138,31 +140,35 @@ func DBGetClusterReservation(client *redis.Client, app string, env string, clust
 
 }
 
-/*DBClientGetSingleCluster ...*/
+/*DBClientGetSingleCluster wrapper to get resource using a given cluster*/
 func DBClientGetSingleCluster(client *redis.Client, app string, env string, cluster string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, cluster, false)
 	return ret, err
 }
 
-/*DBClientGetSingleClusterDetail ...*/
+/*DBClientGetSingleClusterDetail wrapper to get details of a resource using a
+given cluster*/
 func DBClientGetSingleClusterDetail(client *redis.Client, app string, env string, cluster string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, cluster, true)
 	return ret, err
 }
 
-/*DBClientGetAllClusters ...*/
+/*DBClientGetAllClusters is a wrapper to list the clusters in use and the
+resources using the clusters*/
 func DBClientGetAllClusters(client *redis.Client, app string, env string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, "", false)
 	return ret, err
 }
 
-/*DBClientGetAllClustersDetail ...*/
+/*DBClientGetAllClustersDetail is a wrapper to get details used clusters and
+resources using the clusters*/
 func DBClientGetAllClustersDetail(client *redis.Client, app string, env string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, "", true)
 	return ret, err
 }
 
-/*DBClientListClusters ...*/
+/*DBClientListClusters fetches the details of clusters in use and resources
+using those clusters*/
 func DBClientListClusters(client *redis.Client, app string, env string, cluster string, detail bool) (string, error) {
 
 	var clusters ClusterList

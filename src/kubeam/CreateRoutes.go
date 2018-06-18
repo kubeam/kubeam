@@ -8,7 +8,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-/*ApplicationCreate ...*/
+/*ApplicationCreate creates a new resource for the given application,
+environment, cluster*/
 func ApplicationCreate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -16,7 +17,7 @@ func ApplicationCreate(w http.ResponseWriter, r *http.Request) {
 	// appEnv := vars["environment"]
 	cluster, ok := vars["cluster"]
 	if !ok {
-		LogError.Println("Cluster/Shard parameter is required for creating resources")
+		LogError.Println("Cluster parameter is required for creating resources")
 	} else {
 		LogInfo.Println("Setting cluster ", cluster)
 	}
@@ -28,9 +29,6 @@ func ApplicationCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	actionsOutput, err := RunActions("/v1/create", m)
-
-	/****/
-
 	time.Sleep(2000 * time.Millisecond)
 	// payload, _ := GetResourceStatus(vars, []string{
 	// 	"adminweb",

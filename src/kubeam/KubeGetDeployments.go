@@ -10,7 +10,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-/*KubeGetDeployments ...*/
+/*KubeGetDeployments get details for  kubernetes resources names matching
+the filter*/
 func KubeGetDeployments(filter string) (map[string]interface{}, error) {
 	resources := map[string]interface{}{}
 	// creates the in-cluster config
@@ -36,7 +37,7 @@ func KubeGetDeployments(filter string) (map[string]interface{}, error) {
 	name := "default"
 	//isFirst := true
 	for _, d := range list.Items {
-		// If resource matches our fileter. ==0 Insures we match from the beggining of string
+		// If resource matches our filter == 0 Insures we match from the beggining of string
 		if strings.Index(d.Name, resourceName) == 0 {
 			podout := map[string]interface{}{}
 

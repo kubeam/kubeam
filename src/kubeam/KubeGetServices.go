@@ -10,7 +10,7 @@ import (
 	rest "k8s.io/client-go/rest"
 )
 
-/*KubeGetServices ...*/
+/*KubeGetServices gets details of services for the given filter*/
 func KubeGetServices(filter string) (map[string]interface{}, error) {
 	resources := map[string]interface{}{}
 	// creates the in-cluster config

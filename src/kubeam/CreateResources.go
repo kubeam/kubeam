@@ -11,18 +11,19 @@ import (
 	"time"
 )
 
-/*UpdateResources ...*/
+/*UpdateResources updates the kubernetes resources using the new configuration
+from the template list*/
 func UpdateResources(vars map[string]string, templateList []string) {
 	BuildResources(vars, templateList, true)
 }
 
-/*CreateResources ...*/
+/*CreateResources creates a list of kubernetes resources specified in the
+template list*/
 func CreateResources(vars map[string]string, templateList []string) {
 	BuildResources(vars, templateList, false)
 }
 
-/*BuildResources get Status of specified resources.
-Iteracting over each type of app*/
+/*BuildResources get Status of specified resources. Iterating over each type of app*/
 func BuildResources(vars map[string]string, templateList []string, isReplace bool) {
 
 	var kubeAction string

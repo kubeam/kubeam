@@ -13,8 +13,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-/*GetResourceStatus get Status of specified resources.
-Iteracting over each type of app*/
+/*GetResourceStatus get Status of specified resources. Iterating over each type of app*/
 func GetResourceStatus(parms map[string]string, resourcePostfix []string) ([]byte, error) {
 	application := parms["application"]
 	appEnv := parms["environment"]

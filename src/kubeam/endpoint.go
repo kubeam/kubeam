@@ -24,7 +24,6 @@ import (
 type Endpoint struct {
 	// Hostname, either as a domain name or IP address.
 	Host string `json:"host"`
-
 	// List of ports opened for this endpoint on the hostname.
 	Ports []ServicePort `json:"ports"`
 }
