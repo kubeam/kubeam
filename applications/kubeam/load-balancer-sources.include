@@ -1,0 +1,4 @@
+  loadBalancerSourceRanges:
+  ##### Restrict access to KubeAM to your CI environment
+  #- 8.8.8.8/32
+  #- 4.4.4.4/32

@@ -1,0 +1,68 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{.environment}}-kubeam
+  namespace: {{.environment}}-kubeam
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: {{.environment}}-kubeam
+    spec:
+      #serviceAccountName: {{.environment}}-kubeam
+      containers:
+      - name: kubeam
+{{- if not (eq .environment "minikube" ) }}
+        image: my.registry/kubeam:{{.tag}}
+{{- else }}
+        image: localhost:5000/kubeam:{{.tag}}
+{{- end }}
+        imagePullPolicy: Always
+        command: ["/bin/sh"]
+{{- if not (eq .environment "minikube") }}
+        args: ["-c", "cp -vf /secrets/kubeam-conf /config.yaml;/kubeam"]
+{{- else }}
+        args: ["-c", "/kubeam"]
+{{- end  }}
+        #env:
+        #- name: KUBECONFIG
+        #  value: "/secrets/kube-conf"
+        ports:
+        - containerPort: 443
+        - containerPort: 8081
+        readinessProbe:
+          httpGet:
+            path: /health-check
+            scheme: HTTP
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health-check
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        securityContext:
+          privileged: true
+{{- if not (eq .environment "minikube") -}}
+        volumeMounts:
+          - name: kubeam-secrets
+            mountPath: /secrets
+            readOnly: true
+          - name: kubeam-clusters
+            mountPath: /clusters
+            readOnly: true
+          - mountPath: /tmp
+            name: kubeam-logs
+      volumes:
+        - name: kubeam-secrets
+          secret:
+            secretName: {{.environment}}-kubeam
+        - name: kubeam-logs
+          emptyDir: {}
+        - name: kubeam-clusters
+          secret:
+            secretName: {{.environment}}-kubeam-clusters
+{{- end }}

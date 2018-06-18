@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: {{.environment}}-kubeam
+  name: {{.environment}}-kubeam
+  namespace: {{.environment}}-kubeam
+spec:
+  ports:
+    # The port that this service should serve on.
+  - name: https
+    protocol: TCP
+    port: 443
+    #targetPort: 9377
+
+  # Label keys and values that must match in order to receive traffic for this service.
+  selector:
+    app: {{.environment}}-kubeam
+  ##
+  ## Exteral valancer
+{{- if (eq .environment "minikube") }}
+  type: NodePort
+{{- else }}
+  type: LoadBalancer
+<%file:load-balancer-sources.include%> 
+{{- end }}
