@@ -17,4 +17,4 @@ before_script:
 
 script:
 - kubectl cluster-info 
-- kubectl --namespace kube-system get pods 
+- kubectl --namespace kube-system get pods  
