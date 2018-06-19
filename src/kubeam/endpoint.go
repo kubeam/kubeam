@@ -24,7 +24,6 @@ import (
 type Endpoint struct {
 	// Hostname, either as a domain name or IP address.
 	Host string `json:"host"`
-
 	// List of ports opened for this endpoint on the hostname.
 	Ports []ServicePort `json:"ports"`
 }
@@ -48,8 +47,8 @@ func GetExternalEndpoints(service *api.Service) []Endpoint {
 	return externalEndpoints
 }
 
-// GetInternalEndpoint returns internal endpoint name for the given service properties, e.g.,
-// "my-service.namespace 80/TCP" or "my-service 53/TCP,53/UDP".
+/*GetInternalEndpoint returns internal endpoint name for the given service properties,
+e.g, "my-service.namespace 80/TCP" or "my-service 53/TCP,53/UDP"*/
 func GetInternalEndpoint(serviceName, namespace string, ports []api.ServicePort) Endpoint {
 	name := serviceName
 

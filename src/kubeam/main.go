@@ -1,28 +1,33 @@
 package main
 
 import (
-	//"reflect"
+	"crypto/tls"
 	"io"
 	"log"
+	"net/http"
 	"os"
-	//"io/ioutil"
-	"crypto/tls"
+	"strings"
+
 	"github.com/creamdog/gonfig"
 	"github.com/gorilla/mux"
-	"net/http"
-	"strings"
 )
 
 var config gonfig.Gonfig
 
 var (
-	LogTrace   *log.Logger
-	LogDebug   *log.Logger
-	LogInfo    *log.Logger
+	//LogTrace ...
+	LogTrace *log.Logger
+	//LogDebug ...
+	LogDebug *log.Logger
+	//LogInfo ...
+	LogInfo *log.Logger
+	//LogWarning ...
 	LogWarning *log.Logger
-	LogError   *log.Logger
+	//LogError ...
+	LogError *log.Logger
 )
 
+/*InitLogger initializes different logging handlers*/
 func InitLogger(
 	traceHandle io.Writer,
 	debugHandle io.Writer,
@@ -51,6 +56,7 @@ func InitLogger(
 		log.Ldate|log.Ltime|log.Lshortfile)
 }
 
+/*LowerCaseURI returns a lower cases converted URL path*/
 func LowerCaseURI(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = strings.ToLower(r.URL.Path)
@@ -69,15 +75,15 @@ func main() {
 
 	//
 	// Read application config from file
-	f, err := os.Open("config.yaml")
+	f, err := os.Open("config-sample.yaml")
 	if err != nil {
-		LogError.Println("Error configuration file: %v\n", err)
+		LogError.Printf("Error configuration file: %v\n", err)
 		os.Exit(1)
 	}
 	defer f.Close()
 	config, err = gonfig.FromYml(f)
 	if err != nil {
-		LogError.Println(os.Stderr, "Error configuration file: %v\n", err)
+		LogError.Printf("Error configuration file: %v\n", err)
 		os.Exit(1)
 	}
 	//fmt.Println(reflect.TypeOf(config))
@@ -129,10 +135,10 @@ func main() {
 		TLSConfig:    cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
-	ssl_cert, err := config.GetString("https/certificate", "server.crt")
-	ssl_key, err := config.GetString("https/key", "server.key")
+	sslcert, err := config.GetString("https/certificate", "server.crt")
+	sslkey, err := config.GetString("https/key", "server.key")
 
-	log.Fatal(srv.ListenAndServeTLS(ssl_cert, ssl_key))
+	log.Fatal(srv.ListenAndServeTLS(sslcert, sslkey))
 	//log.Fatal(http.ListenAndServe(":8080", router))
 
 }

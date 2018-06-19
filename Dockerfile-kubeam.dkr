@@ -2,7 +2,7 @@ FROM busybox
 
 COPY kubectl.linux /kubectl
 RUN chmod 755 /kubectl
-COPY config.yaml /
+COPY config-sample.yaml /
 COPY authz-policy.csv /
 COPY authz-model.conf /
 COPY server.crt server.key /
@@ -13,4 +13,3 @@ ADD lookup /lookup
 
 EXPOSE 443 8081
 CMD ["/kubeam"]
-

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+/*ClusterList struct describes responses with description of clusters*/
 type ClusterList struct {
 	Description string
 	Clusters    map[string]map[string]string
@@ -20,6 +20,8 @@ type ClusterList struct {
 
 var redisClient *redis.Client
 
+/*NewDBClient establishes a new redis database connection and returns
+the client connection object*/
 func NewDBClient() *redis.Client {
 	redisHost, err := config.GetString("redis/host", "localhost")
 	redisPort, err := config.GetInt("redis/port", 6379)
@@ -40,25 +42,28 @@ func NewDBClient() *redis.Client {
 	return (client)
 }
 
+/*DBClientReserveCluster updates the redis cache and allocates the cluster
+to the incoming resource*/
 func DBClientReserveCluster(client *redis.Client, app string, env string, key string, val []byte, t time.Duration) error {
 	err := client.Set(fmt.Sprintf("%v-%v-%v", app, env, key), val, t).Err()
 	//first slice then convert to string (string is a read-only slice of bytes)
-	LogInfo.Println(fmt.Sprintf("%v-%v-%v [%v]", app, env, key, string(val[:])))
+	LogInfo.Printf("%v-%v-%v [%v]", app, env, key, string(val[:]))
 	if err != nil {
 		return err
-	} else {
-		LogInfo.Println(fmt.Sprintf("Created reservation for %v-%v-%v [%v] with TTL of %v", app, env, key, string(val[:]), 300))
 	}
+	LogInfo.Printf("Created reservation for %v-%v-%v [%v] with TTL of %v", app, env, key, string(val[:]), 300)
 	return nil
 }
 
+/*DBClientFindAndReserve is a wrapper to find a free cluster and update the
+cache of used clusters*/
 func DBClientFindAndReserve(client *redis.Client, app string, env string, ttl time.Duration) (string, error) {
 
 	var clusters ClusterList
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", app, env))
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Could not find a cluster definition for application: %v env: %v", app, env))
+		return "", fmt.Errorf("Could not find a cluster definition for application: %v env: %v", app, env)
 	}
 	err = yaml.Unmarshal(yamlFile, &clusters)
 	check(err)
@@ -69,38 +74,38 @@ func DBClientFindAndReserve(client *redis.Client, app string, env string, ttl ti
 		fmt.Println("Checking value", value)
 		val, err := client.Get(fmt.Sprintf("%v-%v-%v", app, env, key)).Result()
 		if err == redis.Nil {
-			LogInfo.Println(fmt.Sprintf("Found available cluster [%v] for you.", key))
+			LogInfo.Printf("Found available cluster [%v] for you.", key)
 			decodedValue, _ := json.Marshal(value)
 			ttl, err := time.ParseDuration("1500s")
 			if err != nil {
-				default_ttl, _ := strconv.Atoi(value["default_ttl"])
-				default_ttl_parsed := time.Duration(default_ttl)
-				ttl = time.Duration(default_ttl_parsed * time.Second)
+				defaultTTL, _ := strconv.Atoi(value["default_ttl"])
+				defaultTTLParsed := time.Duration(defaultTTL)
+				ttl = time.Duration(defaultTTLParsed * time.Second)
 			}
 			err = DBClientReserveCluster(client, app, env, string(key), decodedValue, ttl)
 			if err != nil {
 				return "", err
-			} else {
-				return string(key), nil
 			}
+			return string(key), nil
 		} else if err != nil {
-			LogError.Println(fmt.Sprintf("Failed to query redis for key [%v-%v-%v]", app, env, key))
+			LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, key)
 		} else {
-			LogInfo.Println(fmt.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val))
+			LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val)
 		}
 	}
-	LogInfo.Println(fmt.Sprintf("No clusters available for reservation for appliation %v environment %v", app, env))
-	return "", errors.New(fmt.Sprintf("No clusters available for reservation for appliation %v environment %v", app, env))
+	LogInfo.Printf("No clusters available for reservation for appliation %v environment %v", app, env)
+	return "", fmt.Errorf("No clusters available for reservation for appliation %v environment %v", app, env)
 
 }
 
+/*DBGetClusterReservation ...*/
 func DBGetClusterReservation(client *redis.Client, app string, env string, cluster string) (string, error) {
 
 	var clusters ClusterList
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", app, env))
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Could not find a cluster definition for application: %v env: %v", app, env))
+		return "", fmt.Errorf("Could not find a cluster definition for application: %v env: %v", app, env)
 	}
 	err = yaml.Unmarshal(yamlFile, &clusters)
 	check(err)
@@ -111,11 +116,11 @@ func DBGetClusterReservation(client *redis.Client, app string, env string, clust
 	output.WriteString("{")
 	val, err := client.Get(fmt.Sprintf("%v-%v-%v", app, env, cluster)).Result()
 	if err == redis.Nil {
-		LogInfo.Println(fmt.Sprintf("Cluster %v is free", cluster))
+		LogInfo.Printf("Cluster %v is free", cluster)
 	} else if err != nil {
-		LogError.Println(fmt.Sprintf("Failed to query redis for key [%v-%v-%v]", app, env, cluster))
+		LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, cluster)
 	} else {
-		LogInfo.Println(fmt.Printf("Cluster %v has a reservation valid for 0 seconds %v", cluster, val))
+		LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", cluster, val)
 
 		out := map[string]interface{}{}
 		json.Unmarshal([]byte(val), &out)
@@ -135,24 +140,35 @@ func DBGetClusterReservation(client *redis.Client, app string, env string, clust
 
 }
 
+/*DBClientGetSingleCluster wrapper to get resource using a given cluster*/
 func DBClientGetSingleCluster(client *redis.Client, app string, env string, cluster string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, cluster, false)
 	return ret, err
 }
+
+/*DBClientGetSingleClusterDetail wrapper to get details of a resource using a
+given cluster*/
 func DBClientGetSingleClusterDetail(client *redis.Client, app string, env string, cluster string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, cluster, true)
 	return ret, err
 }
 
+/*DBClientGetAllClusters is a wrapper to list the clusters in use and the
+resources using the clusters*/
 func DBClientGetAllClusters(client *redis.Client, app string, env string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, "", false)
 	return ret, err
 }
+
+/*DBClientGetAllClustersDetail is a wrapper to get details used clusters and
+resources using the clusters*/
 func DBClientGetAllClustersDetail(client *redis.Client, app string, env string) (string, error) {
 	ret, err := DBClientListClusters(client, app, env, "", true)
 	return ret, err
 }
 
+/*DBClientListClusters fetches the details of clusters in use and resources
+using those clusters*/
 func DBClientListClusters(client *redis.Client, app string, env string, cluster string, detail bool) (string, error) {
 
 	var clusters ClusterList
@@ -160,7 +176,7 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", app, env))
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Could not find a cluster definition for application: %v env: %v", app, env))
+		return "", fmt.Errorf("Could not find a cluster definition for application: %v env: %v", app, env)
 	}
 	err = yaml.Unmarshal(yamlFile, &clusters)
 	check(err)
@@ -178,12 +194,12 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 		fmt.Println("Checking value", value)
 		val, err := client.Get(fmt.Sprintf("%v-%v-%v", app, env, key)).Result()
 		if err == redis.Nil {
-			LogInfo.Println(fmt.Sprintf("Cluster %v is free", key))
+			LogInfo.Printf("Cluster %v is free", key)
 
 		} else if err != nil {
-			LogError.Println(fmt.Sprintf("Failed to query redis for key [%v-%v-%v]", app, env, key))
+			LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, key)
 		} else {
-			LogInfo.Println(fmt.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val))
+			LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val)
 
 			out := map[string]interface{}{}
 			json.Unmarshal([]byte(val), &out)

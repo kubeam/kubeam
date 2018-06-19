@@ -11,18 +11,19 @@ import (
 	"time"
 )
 
+/*UpdateResources updates the kubernetes resources using the new configuration
+from the template list*/
 func UpdateResources(vars map[string]string, templateList []string) {
 	BuildResources(vars, templateList, true)
 }
 
+/*CreateResources creates a list of kubernetes resources specified in the
+template list*/
 func CreateResources(vars map[string]string, templateList []string) {
 	BuildResources(vars, templateList, false)
 }
 
-////
-// get Status of specified resources.
-// Iteracting over each type of app
-///
+/*BuildResources get Status of specified resources. Iterating over each type of app*/
 func BuildResources(vars map[string]string, templateList []string, isReplace bool) {
 
 	var kubeAction string
@@ -41,7 +42,7 @@ func BuildResources(vars map[string]string, templateList []string, isReplace boo
 	cmdName := "./kubectl"
 
 	for _, templateFile := range templateList {
-		rendered := []byte(render_template(templateFile, m))
+		rendered := []byte(RenderTemplate(templateFile, m))
 
 		tmpfile, err := ioutil.TempFile("tmp/", fmt.Sprintf("%s.rendered.", path.Base(templateFile)))
 		if err != nil {
@@ -74,7 +75,7 @@ func BuildResources(vars map[string]string, templateList []string, isReplace boo
 			LogDebug.Println(string(cmdOut))
 		}
 		if err := tmpfile.Close(); err != nil {
-			LogWarning.Println(os.Stderr, err)
+			LogError.Println(err)
 		}
 		time.Sleep(2000 * time.Millisecond)
 	}

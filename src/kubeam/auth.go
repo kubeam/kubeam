@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"reflect"
 	"crypto/subtle"
 	"net/http"
 	"os"
@@ -57,12 +56,12 @@ func AuthZ(handler http.HandlerFunc) http.HandlerFunc {
 func checkUser(r *http.Request) bool {
 	username, err := config.GetString("credentials/kubeam/username", "invalid-user")
 	if err != nil {
-		LogError.Println("FATAL configuration file: %v\n", err)
+		LogError.Printf("FATAL configuration file: %v\n", err)
 		os.Exit(1)
 	}
 	password, err := config.GetString("credentials/kubeam/password", "invalid-password")
 	if err != nil {
-		LogError.Println("FATAL configuration file: %v\n", err)
+		LogError.Printf("FATAL configuration file: %v\n", err)
 		os.Exit(1)
 	}
 
