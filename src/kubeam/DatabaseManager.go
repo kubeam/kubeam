@@ -10,7 +10,7 @@ func GetDatabaseConnection() *sql.DB {
 	var db *sql.DB
 
 	databaseIP, err := config.GetString("database/host", "localhost")
-	databasePort, err := config.GetInt("database/port", 3306)
+	databasePort, err := config.GetString("database/port", "3306")
 	databasePassword, err := config.GetString("database/password", "")
 	databaseType, err := config.GetString("database/type", "mysql")
 	databaseName, err := config.GetString("database/name", "kubeam")
