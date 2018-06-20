@@ -51,7 +51,15 @@ func setRoutes(router *mux.Router) {
 	router.HandleFunc("/v1/event/{application}/{environment}/{cluster}/{tag}",
 		BasicAuth(AuthZ(EventStatus))).Methods("POST")
 
-	// Manage kubernetes Job objects
-	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{tag}",
+	// Manage Kubernetes Jobs
+	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{jobname}",
 		BasicAuth(AuthZ(RunJob))).Methods("POST")
+	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{jobname}",
+		BasicAuth(AuthZ(GetJobStatus))).Methods("GET")
+	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{jobname}",
+		BasicAuth(AuthZ(DeleteJob))).Methods("DELETE")
+
+	// Github hook to checkout git repos
+	router.HandleFunc("/v1/githubhook", GetGithubRepos).Methods("POST")
+	router.HandleFunc("/v1/githubhook", LoadGitRepos).Methods("PUSH")
 }

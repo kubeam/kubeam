@@ -9,5 +9,6 @@ p, admin, /v1/getclusterdetail/*, GET
 p, admin, /v1/getallclustersdetail/*, GET
 p, admin, /v1/waitforready/*, GET
 p, admin, /v1/event/*, POST
-p, admin, /v1/kubejob/*, POST
+p, admin, /v1/kubejob/*, *
+p, admin, /v1/githubhook, *
 g, circleci, admin
