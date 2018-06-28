@@ -1,0 +1,15 @@
+description: Sample configuration files
+templates:
+  tnsnames.ora:
+    template: sample-conf/tnsnames.ora.template
+    destination: rendered/tnsnames.ora
+    datasource: app.ini
+    action: create
+    mode: 644
+  server.xml:
+    template: sample-conf/server.xml.template
+    destination: rendered/server.xml
+    datasource: app.ini
+    action: create
+    mode: 644
+
