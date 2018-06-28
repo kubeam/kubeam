@@ -1,4 +1,16 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+*.swp
+*.swo
 config.yaml
 server.crt
 server.key
 kubectl.linux
+target/**
+src/kubeam/kubeam
+src/sample-webapp/sample-webapp
+kubeam
+kubectl
+.gopath~

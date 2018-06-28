@@ -1,15 +1,18 @@
-FROM busybox
+FROM alpine
 
-COPY kubectl.linux /kubectl
+COPY kubectl /kubectl
 RUN chmod 755 /kubectl
-COPY config-sample.yaml /
+COPY config-sample.yaml /config.yaml
 COPY authz-policy.csv /
 COPY authz-model.conf /
 COPY server.crt server.key /
-COPY src/kubeam/kubeam /
+COPY bin/kubeam /kubeam
+RUN chmod 755 /kubeam
 ADD applications /applications
 ADD clusters /clusters
 ADD lookup /lookup
 
 EXPOSE 443 8081
-CMD ["/kubeam"]
+#ENTRYPOINT ["/kubeam"]
+#CMD ["start"]
+CMD ["/kubeam", "start" ]
