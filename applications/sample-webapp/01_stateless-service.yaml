@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+{{- if not (eq .environment "minikube") }}
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:--your-cert"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+{{- end }}
+  name: {{.environment}}-{{.application}}-service
+  namespace: {{.environment}}-{{.application}}
+  labels:
+    name: {{.environment}}-{{.application}}-service
+spec:
+  selector:
+    app: {{.environment}}-{{.application}}
+{{- if not (eq .environment "minikube") }}
+  type: LoadBalancer
+{{- else }}
+  type: NodePort
+{{- end }}
+  ports:
+    - name: "https"
+      port: 443
+      targetPort: 8080
+      protocol: "TCP"
+{{- if not (eq .environment "minikube") }}
+<%file:load-balancer-sources.include%>
+{{- end }}
