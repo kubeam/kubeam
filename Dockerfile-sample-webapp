@@ -1,0 +1,22 @@
+#pull base image
+##
+## Build:
+##   docker build . -t localhost:5000/sample-webapp
+## Run with this command
+##   docker run --rm -d -p 8080:8080 localhost:5000/sample-webapp
+FROM busybox
+
+#maintainer 
+MAINTAINER llimon@gmail.com
+
+#expose port 8080
+EXPOSE 8080
+
+#copy hello world to docker image
+ADD ./src/sample-webapp/sample-webapp /sample-webapp
+
+RUN chmod 755 /sample-webapp
+
+#default command
+CMD /sample-webapp
+
