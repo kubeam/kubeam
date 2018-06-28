@@ -1,0 +1,22 @@
+<Server port="8010" shutdown="SHUTDOWN">
+
+  <Service name="Catalina">
+    <Connector port="8009" enableLookups="false" maxParameterCount="25000" connectionTimeout="10000"
+	minSpareThreads="4" maxThreads="{{.maxthreads}}"
+	protocol="AJP/1.3" URIEncoding="UTF-8" useBodyEncodingForURI="true"/>
+
+    <Connector port="8080" enableLookups="false" maxParameterCount="25000" connectionTimeout="10000"
+        minSpareThreads="4" maxThreads="{{.maxthreads}}" maxPostSize="{{.maxpostsize}}" packetSize="{{.maxpacketsize}}" maxHttpHeaderSize="{{.maxhttpheadersize}}"
+        protocol="HTTP/1.1" emptySessionPath="true"
+        secure="true" URIEncoding="UTF-8" useBodyEncodingForURI="true"/>
+
+    <Engine name="Catalina" defaultHost="localhost">
+      <Host name="localhost" appBase="/usr/local/tomcat/webapps" autoDeploy="false" deployOnStartup="false">
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs" prefix="tomcat_access_log." suffix="" pattern="common" resolveHosts="false"/>
+        <Valve className="org.apache.catalina.valves.StuckThreadDetectionValve"/>
+        <Context path="/" docBase="/usr/local/tomcat/webapps/contextforward" crossContext="true" reloadable="false" useHttpOnly="true"/>
+      </Host>
+    </Engine>
+  </Service>
+</Server>
+

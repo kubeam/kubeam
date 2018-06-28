@@ -1,6 +1,0 @@
-kind: Namespace
-apiVersion: v1
-metadata: 
- name: {{.environment}}-{{.application}}
- labels: 
-  name: {{.environment}}-{{.application}}
