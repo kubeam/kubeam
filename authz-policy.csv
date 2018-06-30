@@ -11,4 +11,5 @@ p, admin, /v1/waitforready/*, GET
 p, admin, /v1/event/*, POST
 p, admin, /v1/kubejob/*, *
 p, admin, /v1/githubhook, *
+p, admin, /v1/featurecluster/*, *
 g, circleci, admin
