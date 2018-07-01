@@ -62,4 +62,13 @@ func setRoutes(router *mux.Router) {
 	// Github hook to checkout git repos
 	router.HandleFunc("/v1/githubhook", GetGithubRepos).Methods("POST")
 	router.HandleFunc("/v1/githubhook", LoadGitRepos).Methods("PUSH")
+
+	// Get Clusters for Feature branches
+	router.HandleFunc("/v1/featurecluster/{application}/{environment}/{branch}",
+		BasicAuth(AuthZ(ReserveFeatureCluster))).Methods("POST")
+	router.HandleFunc("/v1/featurecluster/{application}/{environment}/{branch}",
+		BasicAuth(AuthZ(GetFeatureCluster))).Methods("GET")
+	router.HandleFunc("/v1/featurecluster/{application}/{environment}/{branch}",
+		BasicAuth(AuthZ(FreeFeatureCluster))).Methods("DELETE")
+
 }

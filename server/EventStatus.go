@@ -24,7 +24,7 @@ func saveEventStatus(eventdata map[string]string) {
 	db := GetDatabaseConnection()
 	defer db.Close()
 
-	sql, err := db.Prepare("INSERT INTO eventstatus (?, ?, ?, ?, ?)")
+	sql, err := db.Prepare("INSERT INTO eventstatus VALUES (?, ?, ?, ?, ?)")
 	errorz(err)
 
 	_, err = sql.Exec(eventdata["event"],
