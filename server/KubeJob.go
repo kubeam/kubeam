@@ -50,16 +50,32 @@ func RunJob(w http.ResponseWriter, r *http.Request) {
 
 /*GetJobStatus Get execution status of a Job running on cluster*/
 func GetJobStatus(w http.ResponseWriter, r *http.Request) {
-	var resource, namespace string
+	//var resource, namespace string
 	var response []byte
+	m := make(map[string]interface{})
 
 	res := make(map[string]interface{})
 	vars := mux.Vars(r)
+	for k, v := range vars {
+		m[k] = v
+	}
 
 	clientset := GetClientSet()
 
-	namespace = GetJobNamespace(vars)
-	resource = fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"], vars["environment"], vars["cluster"], vars["jobname"])
+	jobapi, err := GetJobAPI(vars)
+	if err != nil {
+		ErrorHandler(err)
+	}
+	namespace, ok := jobapi["namespace"].(string)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("412 - Failed to obtain namespace"))
+	}
+	resource, ok := jobapi["resource"].(string)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("412 - Failed to obtain resource"))
+	}
 
 	LogInfo.Printf("get jobstatus: %s on namepsace: %s", resource, namespace)
 	myjob, err := clientset.BatchV1().Jobs(namespace).Get(resource, metav1.GetOptions{})
@@ -76,14 +92,10 @@ func GetJobStatus(w http.ResponseWriter, r *http.Request) {
 			res["LastProbeTime"] = strings.Replace(jobStatus.CompletionTime.String(), "T", " ", 1)[:20]
 		}
 
-		if jobStatus.Active == 0 &&
-			jobStatus.Failed == 0 &&
-			jobStatus.Succeeded != 0 {
+		if jobStatus.Active == 0 && jobStatus.Failed == 0 && jobStatus.Succeeded != 0 {
 			res["JobStatus"] = "Completed"
 			res["Logs"] = GetLogs(myjob)
-		} else if jobStatus.Active == 0 &&
-			jobStatus.Failed != 0 &&
-			jobStatus.Succeeded == 0 {
+		} else if jobStatus.Active == 0 && jobStatus.Failed != 0 && jobStatus.Succeeded == 0 {
 			res["JobStatus"] = "Failed"
 			res["Logs"] = GetLogs(myjob)
 		} else {
