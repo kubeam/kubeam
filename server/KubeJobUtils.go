@@ -198,6 +198,25 @@ func deleteKubernetesJob(resource, namespace string) string {
 	return fmt.Sprintf("Deleted: %s", resource)
 }
 
+// GetJobAPI retrieves all keypairs api for the k8s Job from YAML
+func GetJobAPI(vars map[string]string) (map[string]interface{}, error) {
+	LogDebug.Println("Fetching Job API actions")
+
+	m := make(map[string]interface{})
+
+	for k, v := range vars {
+		m[k] = v
+	}
+
+	ret, err := GetAPIActions("/v1/kubejob", vars["application"], m)
+	ErrorHandler(err)
+
+	for _, actionsItem := range ret {
+		return actionsItem, nil
+	}
+	return make(map[string]interface{}), fmt.Errorf("No definition for /v1/kubejob application %v", vars["application"])
+}
+
 /*GetClientSet returns a clientset object to make API calls*/
 func GetClientSet() *kube.Clientset {
 

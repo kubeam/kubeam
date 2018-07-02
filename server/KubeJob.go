@@ -48,49 +48,62 @@ func RunJob(w http.ResponseWriter, r *http.Request) {
 
 /*GetJobStatus Get execution status of a Job running on cluster*/
 func GetJobStatus(w http.ResponseWriter, r *http.Request) {
-	var resource string
-
 	res := make(map[string]interface{})
 	vars := mux.Vars(r)
 
-	if ns, err := GetJobNamespace(vars); err == nil {
-		client := GetClientSet().BatchV1().Jobs(ns)
-		resource = fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"],
-			vars["environment"], vars["cluster"], vars["jobname"])
-		LogInfo.Printf("get jobstatus: %s on namepsace: %s", resource, ns)
+	if jobapi, err := GetJobAPI(vars); err == nil {
+		if resource, ok := jobapi["resource"]; ok {
+			if ns, ok := jobapi["namespace"]; ok {
 
-		if myjob, err := client.Get(resource, metav1.GetOptions{}); err == nil {
-			jobStatus := myjob.Status
-			res["JobName"] = resource
-			res["StartTime"] = strings.Replace(jobStatus.StartTime.String(), "T", " ", 1)[:20]
-			res["JobId"] = fmt.Sprintf("%s-%d", resource, jobStatus.StartTime.Unix())
-			res["LastProbeTime"] = strings.Replace(time.Now().String(), "T", " ", 1)[:20]
+				client := GetClientSet().BatchV1().Jobs(ns.(string))
+				LogInfo.Printf("get jobstatus: %s on namepsace: %s", resource, ns)
 
-			if len(jobStatus.Conditions) != 0 {
-				res["LastProbeTime"] = strings.Replace(jobStatus.CompletionTime.String(), "T", " ", 1)[:20]
-			}
+				if myjob, err := client.Get(resource.(string), metav1.GetOptions{}); err == nil {
+					jobStatus := myjob.Status
+					res["JobName"] = resource
+					res["StartTime"] = strings.Replace(jobStatus.StartTime.String(), "T", " ", 1)[:20]
+					res["JobId"] = fmt.Sprintf("%s-%d", resource, jobStatus.StartTime.Unix())
+					res["LastProbeTime"] = strings.Replace(time.Now().String(), "T", " ", 1)[:20]
 
-			if jobStatus.Active == 0 && jobStatus.Failed == 0 &&
-				jobStatus.Succeeded != 0 {
-				res["JobStatus"] = "Completed"
-				res["Logs"], _ = GetLogs(myjob)
-			} else if jobStatus.Active == 0 && jobStatus.Failed != 0 &&
-				jobStatus.Succeeded == 0 {
-				res["JobStatus"] = "Failed"
-				res["Logs"], _ = GetLogs(myjob)
+					if len(jobStatus.Conditions) != 0 {
+						res["LastProbeTime"] = strings.Replace(jobStatus.CompletionTime.String(), "T", " ", 1)[:20]
+					}
+
+					if jobStatus.Active == 0 && jobStatus.Failed == 0 &&
+						jobStatus.Succeeded != 0 {
+						res["JobStatus"] = "Completed"
+						res["Logs"], _ = GetLogs(myjob)
+					} else if jobStatus.Active == 0 && jobStatus.Failed != 0 &&
+						jobStatus.Succeeded == 0 {
+						res["JobStatus"] = "Failed"
+						res["Logs"], _ = GetLogs(myjob)
+					} else {
+						res["JobStatus"] = "Running"
+						res["Logs"] = "No Logs"
+					}
+					if response, err := json.Marshal(res); err == nil {
+						w.Header().Set("Content-Type", "application/json")
+						w.Write(response)
+					}
+				} else {
+					LogError.Println(err.Error())
+					w.Header().Set("Content-Type", "application/text")
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte(err.Error()))
+					return
+				}
 			} else {
-				res["JobStatus"] = "Running"
-				res["Logs"] = "No Logs"
-			}
-			if response, err := json.Marshal(res); err == nil {
-				w.Header().Set("Content-Type", "application/json")
-				w.Write(response)
+				LogError.Println("412 - Failed to obtain resource")
+				w.Header().Set("Content-Type", "application/text")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("412 - Failed to obtain resource"))
+				return
 			}
 		} else {
-			LogError.Println(err.Error())
+			LogError.Println("412 - Failed to obtain namespace")
 			w.Header().Set("Content-Type", "application/text")
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte("412 - Failed to obtain namespace"))
 			return
 		}
 	} else {
