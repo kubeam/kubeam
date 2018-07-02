@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 /*GetDatabaseConnection opens, test and returns a new database connection*/
@@ -15,8 +16,11 @@ func GetDatabaseConnection() *sql.DB {
 	databaseType, err := config.GetString("database/type", "mysql")
 	databaseName, err := config.GetString("database/name", "kubeam")
 	databaseUser, err := config.GetString("database/user", "sample-user")
-	databaseConn := databaseUser + databasePassword +
-		"@tcp(" + databaseIP + ":" + databasePort + ")/" + databaseName
+
+	if err != nil {
+		LogError.Println(err.Error())
+	}
+	databaseConn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", databaseUser, databasePassword, databaseIP, databasePort, databaseName)
 
 	if db, err = sql.Open(databaseType, databaseConn); err == nil {
 		if err = db.Ping(); err == nil {
