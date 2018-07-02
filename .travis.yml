@@ -22,6 +22,7 @@ before_install:
 
 install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - make vendor
   - make
 
 before_script:
@@ -55,7 +56,9 @@ script:
 - docker push localhost:5000/kubeam
 - kubectl apply -f ci-tests/kubeam-bootstrap.yaml
 - kubectl apply -f ci-tests/kubeam-bootstrap-service.yaml
-- sleep 10
+- kubectl apply -f ci-tests/mysql-bootstrap.yaml
+- kubectl apply -f ci-tests/redis-bootstrap.yaml
+- sleep 30
 - kubectl get pods
 - kubectl logs rc/kubeam
 - kubectl describe ReplicationController/kubeam
@@ -80,3 +83,4 @@ script:
 - kubectl --namespace  dev-sample-webapp get pods
 - curl -v http://127.0.0.1:8080/ | tee test-app-2.log
 - cat test-app-2.log | grep -i "Hello, you've redeployed"
+- curl --header "Content-Type: application/json" --request POST --data '{"event":"create","message":"sample-webapp was re-deployed", "timestamp": "12 AM","pipeline": "sample-webapp"}' https://admin:123456@localhost:/v1/event/sample-webapp/dev/main/002
