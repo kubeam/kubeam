@@ -17,16 +17,15 @@ func GetDatabaseConnection() *sql.DB {
 	databaseName, err := config.GetString("database/name", "kubeam")
 	databaseUser, err := config.GetString("database/user", "sample-user")
 
-	if err != nil {
-		LogError.Println(err.Error())
-	}
-	databaseConn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", databaseUser, databasePassword, databaseIP, databasePort, databaseName)
-
-	if db, err = sql.Open(databaseType, databaseConn); err == nil {
-		if err = db.Ping(); err == nil {
-			return db
+	if err == nil {
+		databaseConn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", databaseUser, databasePassword, databaseIP, databasePort, databaseName)
+		if db, err = sql.Open(databaseType, databaseConn); err == nil {
+			if err = db.Ping(); err == nil {
+				return db
+			}
 		}
 	}
+
 	LogError.Println(err.Error())
 	return nil
 }
