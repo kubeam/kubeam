@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-/*GetDatabaseConnection opens, test and returns a new database connection*/
+/*GetDatabaseConnection opens, tests and returns a new database connection*/
 func GetDatabaseConnection() *sql.DB {
 	var err error
 	var db *sql.DB
