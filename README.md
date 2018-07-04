@@ -276,12 +276,12 @@ securitySchemes:
               ],
               "config": {
                 "content_type": "json",
-                "secret": "********",
-                "url": "https://kubeam.sbg-build.a.intuit.com/v1/githubhook"
+                "secret": "{.secret}",
+                "url": "{.kubeam-url}"
               },
               "updated_at": "2018-06-19T17:03:48Z",
               "created_at": "2018-06-19T17:03:48Z",
-              "url": "https://api.github.com/repos/samkeet/yamler/hooks/33892538",
+              "url": "https://api.github.com/repos/{.repo}",
               "last_response": {
                 "code": null,
                 "status": "unused",
@@ -325,7 +325,7 @@ PAYLOAD="
    msg: "PASSED QBO-BATS",
    ts: "2018-01-01 01:01:01"
 }
-curl -X POST -k https://admin:${SECRET}@cikubeam.sbg-qb-ppd.a.intuit.com:443/v1/settag/QBO/QA/66/{docker-TAG}
+curl -X POST -k https://admin:${SECRET}@{.kubeam-url}:443/v1/settag/QBO/QA/66/{docker-TAG}
 
 KEYS are:  <APPLICATION>/<ENVIRONMENT>/<SHARD>/<DOCKER-TAG>
 ```
@@ -333,6 +333,6 @@ KEYS are:  <APPLICATION>/<ENVIRONMENT>/<SHARD>/<DOCKER-TAG>
 Permanently remove a cluster definition (sporadicaly used)
 
 ### AWS Enpoint:
-`https://<account:password>@cikubeam.sbg-qbo-ppd.a.intuit.com:443...`
+`https://<account:password>@{.kubeam-url}:443...`
 
 
