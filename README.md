@@ -27,6 +27,34 @@ Integrates directly with your CI (Jenkins BO/CircleCI/Bamboo) and allows you to 
 - [ ] Remove self-deploy endpoint. Now it can self deploy using api.yaml just like any other app.
 - [ ] /v1/waitforready should look for multiple resources and wait for all of them. This is for complex applications
 
+## Requirements
+
+| Requirement | URL |
+| Go | https://golang.org/doc/install |
+| Docker | https://docs.docker.com/install/ |
+| go/simplejson | go get github.com/bitly/go-simplejson |
+| go/kubernetes | go get k8s.io/client-go/... |
+| go/godep | go get github.com/tools/godep |
+| go/mux | go get -u github.com/gorilla/mux |
+
+## Setup
+
+```bash
+cd {path to kubeAM}
+bash download-kubectl.sh
+make package
+docker push localhost:5000/kubeam
+```
+==
+```bash
+cd /{path to kubeAM}/demo
+bash minikube-setup.sh
+source set-registry.sh
+kubectl apply -f kubeam-bootstrap-pod.yaml && kubectl apply -f kubeam-bootstrap-service.yaml
+curl -k $(minikube service kubeamservice --format "https://admin:123456@{{.IP}}:{{.Port}}" --url)/health-check
+curl -X POST -k $(minikube service kubeamservice --format "https://admin:123456@{{.IP}}:{{.Port}}" --url)/v1/create/kubeam/minikube/main/latest
+```
+
 # API
 [RAML Spec](/kubeam.raml)
 
