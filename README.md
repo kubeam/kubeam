@@ -30,6 +30,7 @@ Integrates directly with your CI (Jenkins BO/CircleCI/Bamboo) and allows you to 
 ## Requirements
 
 | Requirement | URL |
+|-------------|----|
 | Go | https://golang.org/doc/install |
 | Docker | https://docs.docker.com/install/ |
 | go/simplejson | go get github.com/bitly/go-simplejson |
