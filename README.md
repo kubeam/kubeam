@@ -4,8 +4,11 @@ Kubernetes Application and Workflow manager
 
 Integrates directly with your CI (Jenkins BO/CircleCI/Bamboo) and allows you to have end to end CI/CD.
 
-![jenkins-bo-and-kubeam](img/kubeam-jenkins-bo.png)
-![Demo Video](https://www.youtube.com/watch?v=Wmsmp2TLj9E)
+![jenkins-bo-and-kubeam](img/kubeam-jenkins-bo.png) 
+
+![Demo Video](https://www.youtube.com/watch?v=Wmsmp2TLj9E) 
+
+![Create Application Video](https://www.youtube.com/edit?o=U&video_id=n1lffSX1w5k) 
 
 
 ### TODO:
