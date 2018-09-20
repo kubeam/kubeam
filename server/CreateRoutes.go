@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/services"
 )
 
 /*ApplicationCreate creates a new resource for the given application,
@@ -17,9 +19,9 @@ func ApplicationCreate(w http.ResponseWriter, r *http.Request) {
 	// appEnv := vars["environment"]
 	cluster, ok := vars["cluster"]
 	if !ok {
-		LogError.Println("Cluster parameter is required for creating resources")
+		common.LogError.Println("Cluster parameter is required for creating resources")
 	} else {
-		LogInfo.Println("Setting cluster ", cluster)
+		common.LogInfo.Println("Setting cluster ", cluster)
 	}
 
 	// convert vars to something compatible with render_template
@@ -28,7 +30,7 @@ func ApplicationCreate(w http.ResponseWriter, r *http.Request) {
 		m[k] = v
 	}
 
-	actionsOutput, err := RunActions("/v1/create", m)
+	actionsOutput, err := services.RunActions("/v1/create", m)
 	time.Sleep(2000 * time.Millisecond)
 	// payload, _ := GetResourceStatus(vars, []string{
 	// 	"adminweb",

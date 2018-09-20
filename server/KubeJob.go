@@ -9,6 +9,8 @@ import (
 	"time"
 
 	mux "github.com/gorilla/mux"
+	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/services"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,18 +30,18 @@ func RunJob(w http.ResponseWriter, r *http.Request) {
 			m[k] = v
 		}
 
-		if tag, err := GetDockerTag("/v1/kubejob", m); err == nil {
-			LogDebug.Printf("Found docker tag %s", tag)
+		if tag, err := services.GetDockerTag("/v1/kubejob", m); err == nil {
+			common.LogDebug.Printf("Found docker tag %s", tag)
 			m["tag"] = tag
-			if m["namespace"], err = GetJobNamespace(vars); err == nil {
-				actionsOutput, _ := RunJobActions("/v1/kubejob", m)
+			if m["namespace"], err = services.GetJobNamespace(vars); err == nil {
+				actionsOutput, _ := services.RunJobActions("/v1/kubejob", m)
 				output, _ := json.MarshalIndent(actionsOutput, "", " ")
 				w.Header().Set("Content-Type", "application/json")
 				w.Write(output)
 			}
 		}
 	} else {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "application/text")
 		w.Write([]byte(err.Error()))
@@ -51,12 +53,12 @@ func GetJobStatus(w http.ResponseWriter, r *http.Request) {
 	res := make(map[string]interface{})
 	vars := mux.Vars(r)
 
-	if jobapi, err := GetJobAPI(vars); err == nil {
+	if jobapi, err := services.GetJobAPI(vars); err == nil {
 		if resource, ok := jobapi["resource"]; ok {
 			if ns, ok := jobapi["namespace"]; ok {
 
-				client := GetClientSet().BatchV1().Jobs(ns.(string))
-				LogInfo.Printf("get jobstatus: %s on namepsace: %s", resource, ns)
+				client := services.GetClientSet().BatchV1().Jobs(ns.(string))
+				common.LogInfo.Printf("get jobstatus: %s on namepsace: %s", resource, ns)
 
 				if myjob, err := client.Get(resource.(string), metav1.GetOptions{}); err == nil {
 					jobStatus := myjob.Status
@@ -72,42 +74,42 @@ func GetJobStatus(w http.ResponseWriter, r *http.Request) {
 					if jobStatus.Active == 0 && jobStatus.Failed == 0 &&
 						jobStatus.Succeeded != 0 {
 						res["JobStatus"] = "Completed"
-						res["Logs"], _ = GetLogs(myjob)
+						res["common.Logs"], _ = services.GetLogs(myjob)
 					} else if jobStatus.Active == 0 && jobStatus.Failed != 0 &&
 						jobStatus.Succeeded == 0 {
 						res["JobStatus"] = "Failed"
-						res["Logs"], _ = GetLogs(myjob)
+						res["common.Logs"], _ = services.GetLogs(myjob)
 					} else {
 						res["JobStatus"] = "Running"
-						res["Logs"] = "No Logs"
+						res["common.Logs"] = "No common.Logs"
 					}
 					if response, err := json.Marshal(res); err == nil {
 						w.Header().Set("Content-Type", "application/json")
 						w.Write(response)
 					}
 				} else {
-					LogError.Println(err.Error())
+					common.LogError.Println(err.Error())
 					w.Header().Set("Content-Type", "application/text")
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte(err.Error()))
 					return
 				}
 			} else {
-				LogError.Println("412 - Failed to obtain resource")
+				common.LogError.Println("412 - Failed to obtain resource")
 				w.Header().Set("Content-Type", "application/text")
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("412 - Failed to obtain resource"))
 				return
 			}
 		} else {
-			LogError.Println("412 - Failed to obtain namespace")
+			common.LogError.Println("412 - Failed to obtain namespace")
 			w.Header().Set("Content-Type", "application/text")
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("412 - Failed to obtain namespace"))
 			return
 		}
 	} else {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 		w.Header().Set("Content-Type", "application/text")
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -120,8 +122,8 @@ func DeleteJob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	resource := fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"],
 		vars["environment"], vars["cluster"], vars["jobname"])
-	if namespace, err := GetJobNamespace(vars); err == nil {
-		result := deleteKubernetesJob(resource, namespace)
+	if namespace, err := services.GetJobNamespace(vars); err == nil {
+		result := services.DeleteKubernetesJob(resource, namespace)
 		w.Write([]byte(result))
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)

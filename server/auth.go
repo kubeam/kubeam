@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/casbin/casbin"
+	"github.com/kubeam/kubeam/common"
 )
 
 // BasicAuth wraps a handler requiring HTTP basic auth for it using the given
@@ -54,14 +55,14 @@ func AuthZ(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 func checkUser(r *http.Request) bool {
-	username, err := config.GetString("credentials/kubeam/username", "invalid-user")
+	username, err := common.Config.GetString("credentials/kubeam/username", "invalid-user")
 	if err != nil {
-		LogError.Printf("FATAL configuration file: %v\n", err)
+		common.LogError.Printf("FATAL configuration file: %v\n", err)
 		os.Exit(1)
 	}
-	password, err := config.GetString("credentials/kubeam/password", "invalid-password")
+	password, err := common.Config.GetString("credentials/kubeam/password", "invalid-password")
 	if err != nil {
-		LogError.Printf("FATAL configuration file: %v\n", err)
+		common.LogError.Printf("FATAL configuration file: %v\n", err)
 		os.Exit(1)
 	}
 

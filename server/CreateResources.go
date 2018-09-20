@@ -3,6 +3,7 @@ package server
 import (
 	//"reflect"
 	"fmt"
+	"github.com/kubeam/kubeam/common"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -32,7 +33,7 @@ func BuildResources(vars map[string]string, templateList []string, isReplace boo
 	} else {
 		kubeAction = "create"
 	}
-	LogInfo.Println("CreateResources is set to =", kubeAction)
+	common.LogInfo.Println("CreateResources is set to =", kubeAction)
 	// convert vars to something compatible with render_template
 	m := make(map[string]interface{})
 	for k, v := range vars {
@@ -42,40 +43,43 @@ func BuildResources(vars map[string]string, templateList []string, isReplace boo
 	cmdName := "./kubectl"
 
 	for _, templateFile := range templateList {
-		rendered := []byte(RenderTemplate(templateFile, m))
+		rendered, err := common.RenderTemplate(templateFile, m)
+		if err != nil {
+			common.LogError.Println("Failed to render template")
+		}
 
 		tmpfile, err := ioutil.TempFile("tmp/", fmt.Sprintf("%s.rendered.", path.Base(templateFile)))
 		if err != nil {
-			LogInfo.Println(err)
+			common.LogInfo.Println(err)
 		}
 		defer os.Remove(tmpfile.Name()) // clean up
 
-		if _, err := tmpfile.Write(rendered); err != nil {
-			LogError.Println(err)
+		if _, err := tmpfile.Write([]byte(rendered)); err != nil {
+			common.LogError.Println(err)
 		}
 
 		cmdArgs := []string{kubeAction, "-f", tmpfile.Name()}
-		LogDebug.Println("Running: ", cmdName, " ", fmt.Sprintln(strings.Join(cmdArgs, " ")))
+		common.LogDebug.Println("Running: ", cmdName, " ", fmt.Sprintln(strings.Join(cmdArgs, " ")))
 		cmdOut, err := exec.Command(cmdName, cmdArgs...).Output()
 		if err != nil {
-			LogError.Println(fmt.Sprintf("Running kubectl %s", cmdArgs))
+			common.LogError.Println(fmt.Sprintf("Running kubectl %s", cmdArgs))
 			//
 			// Resource might not exist. Lest try creating it.
 			if isReplace {
 				cmdArgs := []string{"create", "-f", tmpfile.Name()}
-				LogDebug.Println("Running: ", cmdName, " ", fmt.Sprintln(strings.Join(cmdArgs, " ")))
+				common.LogDebug.Println("Running: ", cmdName, " ", fmt.Sprintln(strings.Join(cmdArgs, " ")))
 				cmdOut, err := exec.Command(cmdName, cmdArgs...).Output()
 				if err != nil {
-					LogError.Println(fmt.Sprintf("2nd Try running kubectl %s", cmdArgs))
+					common.LogError.Println(fmt.Sprintf("2nd Try running kubectl %s", cmdArgs))
 				} else {
-					LogDebug.Println(string(cmdOut))
+					common.LogDebug.Println(string(cmdOut))
 				}
 			}
 		} else {
-			LogDebug.Println(string(cmdOut))
+			common.LogDebug.Println(string(cmdOut))
 		}
 		if err := tmpfile.Close(); err != nil {
-			LogError.Println(err)
+			common.LogError.Println(err)
 		}
 		time.Sleep(2000 * time.Millisecond)
 	}

@@ -1,4 +1,4 @@
-package server
+package common
 
 import (
 	"github.com/go-sql-driver/mysql"

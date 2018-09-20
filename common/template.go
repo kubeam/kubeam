@@ -1,4 +1,4 @@
-package server
+package common
 
 import (
 	"bufio"
@@ -34,7 +34,7 @@ const (
 
 /*RenderTemplate reads and parses the yaml file with the application
 resource values*/
-func RenderTemplate(tmpfile string, pairs map[string]interface{}) string {
+func RenderTemplate(tmpfile string, pairs map[string]interface{}) (string, error) {
 
 	file, err := os.Open(tmpfile)
 	if err != nil {
@@ -89,10 +89,14 @@ func RenderTemplate(tmpfile string, pairs map[string]interface{}) string {
 			writer := bufio.NewWriter(&bytes)
 
 			err = tmpl.Execute(writer, pairs)
-			check(err)
+			if err != nil {
+				return "", err
+			}
 
 			err = writer.Flush()
-			check(err)
+			if err != nil {
+				return "", err
+			}
 
 			LogDebug.Println(bytes.String())
 
@@ -112,11 +116,13 @@ func RenderTemplate(tmpfile string, pairs map[string]interface{}) string {
 			yamlFile, err := ioutil.ReadFile(fmt.Sprintf(match[LookupFile]))
 			if err != nil {
 				LogError.Println("reading LookupFile ", match[LookupFile])
-				//return "", errors.New(fmt.Sprintf( "Could not lockup file: %v", match) )
+				return "", err
 			}
 
 			err = yaml.Unmarshal(yamlFile, &lookup)
-			check(err)
+			if err != nil {
+				return "", err
+			}
 
 			var lookupvalue string
 			var ok bool
@@ -148,13 +154,17 @@ func RenderTemplate(tmpfile string, pairs map[string]interface{}) string {
 	writer := bufio.NewWriter(&bytes)
 
 	err = tmpl.Execute(writer, pairs)
-	check(err)
+	if err != nil {
+		return "", err
+	}
 
 	err = writer.Flush()
-	check(err)
+	if err != nil {
+		return "", err
+	}
 
 	LogDebug.Println(bytes.String())
 
-	return (bytes.String())
+	return bytes.String(), nil
 
 }
