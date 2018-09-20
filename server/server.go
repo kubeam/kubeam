@@ -4,13 +4,12 @@ import (
 	"crypto/tls"
 	"github.com/creamdog/gonfig"
 	"github.com/gorilla/mux"
+	"github.com/kubeam/kubeam/common"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"github.com/kubeam/kubeam/common"
 )
-
 
 /*LowerCaseURI returns a lower cases converted URL path*/
 func LowerCaseURI(h http.Handler) http.Handler {

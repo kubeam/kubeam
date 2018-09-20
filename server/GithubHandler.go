@@ -12,9 +12,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kubeam/kubeam/common"
 	git "gopkg.in/src-d/go-git.v4"
 	githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"github.com/kubeam/kubeam/common"
 )
 
 const signaturePrefix = "sha1="

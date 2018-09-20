@@ -18,8 +18,6 @@ var (
 	LogError *log.Logger
 )
 
-
-
 /*InitLogger initializes different logging handlers*/
 func InitLogger(
 	traceHandle io.Writer,
@@ -48,4 +46,3 @@ func InitLogger(
 		"ERROR: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 }
-

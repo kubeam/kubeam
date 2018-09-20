@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"gopkg.in/yaml.v2"
 	"github.com/kubeam/kubeam/common"
 	"github.com/kubeam/kubeam/services"
+	"gopkg.in/yaml.v2"
 )
 
 /*ClusterList struct describes responses with description of clusters*/

@@ -7,13 +7,13 @@ import (
 	"path"
 	"strings"
 
+	"github.com/kubeam/kubeam/common"
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kube "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	clientcmd "k8s.io/client-go/tools/clientcmd"
-	"github.com/kubeam/kubeam/common"
 )
 
 /*GetDockerTag fetches the most recent tag of the resource defined in api yaml*/
@@ -118,7 +118,7 @@ func RunJobActions(api string, vars map[string]interface{}) (map[string]interfac
 			if _, ok := actionsItem["file"]; ok {
 				common.LogDebug.Println("Creating rendered yaml ",
 					fmt.Sprintf("applications/%v/%v", app, actionsItem["file"].(string)))
-				rendered, err :=common.RenderTemplate(fmt.Sprintf("applications/%v/%v",
+				rendered, err := common.RenderTemplate(fmt.Sprintf("applications/%v/%v",
 					app, actionsItem["file"].(string)), vars)
 				common.LogDebug.Println("Creating temp file",
 					fmt.Sprintf("%s.rendered.", path.Base(actionsItem["file"].(string))))
@@ -188,6 +188,7 @@ func createKubernetesJob(kubeobj *batchv1.Job, namespace string) string {
 	return fmt.Sprintf("Created: %s", kubeobj.GetName())
 }
 
+// DeleteKubernetesJob - Cleans a job from Kubernetes memory space.
 func DeleteKubernetesJob(resource, namespace string) string {
 	graceperiod := int64(0)
 	clientset := GetClientSet()

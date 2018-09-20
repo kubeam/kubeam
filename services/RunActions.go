@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
 	"github.com/kubeam/kubeam/common"
+	"gopkg.in/yaml.v2"
 )
 
 //APIList describes the list of APIs for the application

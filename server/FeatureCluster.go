@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
-	yaml "gopkg.in/yaml.v2"
 	"github.com/kubeam/kubeam/common"
+	yaml "gopkg.in/yaml.v2"
 )
 
 /*ReserveFeatureCluster reserves a feature cluster*/

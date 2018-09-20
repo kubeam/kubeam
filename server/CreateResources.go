@@ -3,13 +3,13 @@ package server
 import (
 	//"reflect"
 	"fmt"
+	"github.com/kubeam/kubeam/common"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 	"time"
-	"github.com/kubeam/kubeam/common"
 )
 
 /*UpdateResources updates the kubernetes resources using the new configuration
@@ -45,7 +45,7 @@ func BuildResources(vars map[string]string, templateList []string, isReplace boo
 	for _, templateFile := range templateList {
 		rendered, err := common.RenderTemplate(templateFile, m)
 		if err != nil {
-			common.LogError.Println( "Failed to render template")
+			common.LogError.Println("Failed to render template")
 		}
 
 		tmpfile, err := ioutil.TempFile("tmp/", fmt.Sprintf("%s.rendered.", path.Base(templateFile)))

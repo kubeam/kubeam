@@ -8,8 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 	//"github.com/bitly/go-simplejson"
-	"io/ioutil"
 	"github.com/kubeam/kubeam/common"
+	"io/ioutil"
 )
 
 // ApplicationWaitForReady - Wait for a application to be fully deployed. this is a sync call.

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kubeam/kubeam/common"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubernetes "k8s.io/client-go/kubernetes"
 	rest "k8s.io/client-go/rest"
-	"github.com/kubeam/kubeam/common"
 )
 
 /*KubeGetServices gets details of services for the given filter*/
