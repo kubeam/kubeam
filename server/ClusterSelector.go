@@ -208,7 +208,7 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 			out["environment"] = env
 			out["cluster"] = key
 			keyExp := client.TTL(fmt.Sprintf("%v-%v-%v", app, env, key))
-			resourceName := fmt.Sprintf("%v-%v-c%v", app, env, key)
+			resourceName := fmt.Sprintf("%v-%v-%v", app, env, key)
 			out["ttl"] = keyExp.String()
 
 			if detail == true {
