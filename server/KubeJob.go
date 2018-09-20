@@ -15,105 +15,116 @@ import (
 /*RunJob parses payload to execute the cron command and it's arguments*/
 func RunJob(w http.ResponseWriter, r *http.Request) {
 	var cronData map[string]string
+	var err error
 
 	m := make(map[string]interface{})
 	vars := mux.Vars(r)
+	byteData, _ := ioutil.ReadAll(r.Body)
 
-	byteData, err := ioutil.ReadAll(r.Body)
-	err = json.Unmarshal(byteData, &cronData)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-	} else {
-		w.Header().Set("Content-Type", "application/json")
+	if err = json.Unmarshal(byteData, &cronData); err == nil {
 		vars["jobcommand"] = cronData["jobcommand"]
 		vars["jobparams"] = cronData["jobparams"]
 		for k, v := range vars {
 			m[k] = v
 		}
 
-		res, errcode := GetDockerTag("/v1/kubejob", m)
-
-		if errcode == 0 {
-			m["tag"] = res["Tag"]
-			actionsOutput, _ := RunActions("/v1/kubejob", m)
-			output, _ := json.MarshalIndent(actionsOutput, "", " ")
-			response := string(output)
-			w.Write([]byte(response))
-		} else {
-			response, err := json.Marshal(res)
-			ErrorHandler(err)
-			w.WriteHeader(errcode)
-			w.Write([]byte(response))
+		if tag, err := GetDockerTag("/v1/kubejob", m); err == nil {
+			LogDebug.Printf("Found docker tag %s", tag)
+			m["tag"] = tag
+			if m["namespace"], err = GetJobNamespace(vars); err == nil {
+				actionsOutput, _ := RunJobActions("/v1/kubejob", m)
+				output, _ := json.MarshalIndent(actionsOutput, "", " ")
+				w.Header().Set("Content-Type", "application/json")
+				w.Write(output)
+			}
 		}
+	} else {
+		LogError.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/text")
+		w.Write([]byte(err.Error()))
 	}
 }
 
 /*GetJobStatus Get execution status of a Job running on cluster*/
 func GetJobStatus(w http.ResponseWriter, r *http.Request) {
-	var resource, namespace string
-	var response []byte
-
 	res := make(map[string]interface{})
 	vars := mux.Vars(r)
 
-	clientset := GetClientSet()
+	if jobapi, err := GetJobAPI(vars); err == nil {
+		if resource, ok := jobapi["resource"]; ok {
+			if ns, ok := jobapi["namespace"]; ok {
 
-	namespace = GetJobNamespace(vars)
-	resource = fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"], vars["environment"], vars["cluster"], vars["jobname"])
+				client := GetClientSet().BatchV1().Jobs(ns.(string))
+				LogInfo.Printf("get jobstatus: %s on namepsace: %s", resource, ns)
 
-	LogInfo.Printf("get jobstatus: %s on namepsace: %s", resource, namespace)
-	myjob, err := clientset.BatchV1().Jobs(namespace).Get(resource, metav1.GetOptions{})
-	ErrorHandler(err)
+				if myjob, err := client.Get(resource.(string), metav1.GetOptions{}); err == nil {
+					jobStatus := myjob.Status
+					res["JobName"] = resource
+					res["StartTime"] = strings.Replace(jobStatus.StartTime.String(), "T", " ", 1)[:20]
+					res["JobId"] = fmt.Sprintf("%s-%d", resource, jobStatus.StartTime.Unix())
+					res["LastProbeTime"] = strings.Replace(time.Now().String(), "T", " ", 1)[:20]
 
-	if err == nil {
-		jobStatus := myjob.Status
-		res["JobName"] = resource
+					if len(jobStatus.Conditions) != 0 {
+						res["LastProbeTime"] = strings.Replace(jobStatus.CompletionTime.String(), "T", " ", 1)[:20]
+					}
 
-		res["StartTime"] = strings.Replace(jobStatus.StartTime.String(), "T", " ", 1)[:20]
-		res["JobName"] = resource
-		res["JobId"] = fmt.Sprintf("%s-%d", resource, jobStatus.StartTime.Unix())
-		if len(jobStatus.Conditions) != 0 {
-			res["LastProbeTime"] = strings.Replace(jobStatus.CompletionTime.String(), "T", " ", 1)[:20]
-		}
-
-		if jobStatus.Active == 0 &&
-			jobStatus.Failed == 0 &&
-			jobStatus.Succeeded != 0 {
-			res["JobStatus"] = "Completed"
-			res["Logs"] = GetLogs(myjob)
-		} else if jobStatus.Active == 0 &&
-			jobStatus.Failed != 0 &&
-			jobStatus.Succeeded == 0 {
-			res["JobStatus"] = "Failed"
-			res["Logs"] = GetLogs(myjob)
+					if jobStatus.Active == 0 && jobStatus.Failed == 0 &&
+						jobStatus.Succeeded != 0 {
+						res["JobStatus"] = "Completed"
+						res["Logs"], _ = GetLogs(myjob)
+					} else if jobStatus.Active == 0 && jobStatus.Failed != 0 &&
+						jobStatus.Succeeded == 0 {
+						res["JobStatus"] = "Failed"
+						res["Logs"], _ = GetLogs(myjob)
+					} else {
+						res["JobStatus"] = "Running"
+						res["Logs"] = "No Logs"
+					}
+					if response, err := json.Marshal(res); err == nil {
+						w.Header().Set("Content-Type", "application/json")
+						w.Write(response)
+					}
+				} else {
+					LogError.Println(err.Error())
+					w.Header().Set("Content-Type", "application/text")
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte(err.Error()))
+					return
+				}
+			} else {
+				LogError.Println("412 - Failed to obtain resource")
+				w.Header().Set("Content-Type", "application/text")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("412 - Failed to obtain resource"))
+				return
+			}
 		} else {
-			res["JobStatus"] = "Running"
-			res["Logs"] = "No Logs"
+			LogError.Println("412 - Failed to obtain namespace")
+			w.Header().Set("Content-Type", "application/text")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("412 - Failed to obtain namespace"))
+			return
 		}
-		res["LastProbeTime"] = strings.Replace(time.Now().String(), "T", " ", 1)[:20]
 	} else {
-		LogInfo.Println(err, myjob)
-		res["JobStatus"] = "Failed"
-		res["Logs"] = err.Error()
+		LogError.Println(err.Error())
+		w.Header().Set("Content-Type", "application/text")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 	}
-	response, err = json.Marshal(res)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response)
 }
 
 /*DeleteJob deletes a kubernetes job from given app-env-cluster*/
 func DeleteJob(w http.ResponseWriter, r *http.Request) {
-	graceperiod := int64(0)
-	clientset := GetClientSet()
+	w.Header().Set("Content-Type", "application/text")
 	vars := mux.Vars(r)
-	resource := fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"], vars["environment"], vars["cluster"], vars["jobname"])
-	namespace := GetJobNamespace(vars)
-	LogInfo.Printf("Deleting Job ==> %s", resource)
-	err := clientset.BatchV1().Jobs(namespace).Delete(resource, &metav1.DeleteOptions{GracePeriodSeconds: &graceperiod})
-	if err != nil {
-		LogError.Println(err.Error())
-		w.Write([]byte(err.Error()))
+	resource := fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"],
+		vars["environment"], vars["cluster"], vars["jobname"])
+	if namespace, err := GetJobNamespace(vars); err == nil {
+		result := deleteKubernetesJob(resource, namespace)
+		w.Write([]byte(result))
 	} else {
-		w.Write([]byte(fmt.Sprintf("Job %s Deleted", resource)))
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 	}
 }
