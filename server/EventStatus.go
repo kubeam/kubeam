@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/kubeam/kubeam/common"
 )
 
 /*EventStatus parses and saves Jenkins event post data to database*/
@@ -39,8 +40,8 @@ func saveEventStatus(eventdata map[string]string) {
 func errorz(err error) {
 	if err != nil {
 		if me, ok := err.(*mysql.MySQLError); !ok {
-			LogError.Fatalf("mysql error for event status: %s", me.Message)
+			common.LogError.Fatalf("mysql error for event status: %s", me.Message)
 		}
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 	}
 }

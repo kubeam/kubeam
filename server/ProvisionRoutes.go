@@ -9,6 +9,8 @@ import (
 
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/gorilla/mux"
+	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/services"
 )
 
 /*ApplicationStatus fetches the status of kubernetes application*/
@@ -43,7 +45,7 @@ func SelfProvision(w http.ResponseWriter, r *http.Request) {
 		vars["environment"] = "latest"
 		appEnv = vars["environment"]
 	} else {
-		LogInfo.Println("Setting environment", appEnv)
+		common.LogInfo.Println("Setting environment", appEnv)
 	}
 
 	tag, ok := vars["tag"]
@@ -51,7 +53,7 @@ func SelfProvision(w http.ResponseWriter, r *http.Request) {
 		vars["tag"] = "latest"
 		tag = vars["tag"]
 	} else {
-		LogInfo.Println("Setting tag", tag)
+		common.LogInfo.Println("Setting tag", tag)
 	}
 
 	// convert vars to something compatible with render_template
@@ -80,11 +82,11 @@ func SelfProvision(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(2000 * time.Millisecond)
 
 	cmdArgs := []string{"get", "deployment", fmt.Sprintf("%s-%s", appEnv, "kubeam")}
-	LogTrace.Println(fmt.Sprintf("Running : %s %s", cmdName, cmdArgs))
+	common.LogTrace.Println(fmt.Sprintf("Running : %s %s", cmdName, cmdArgs))
 	cmdOut, err := exec.Command(cmdName, cmdArgs...).CombinedOutput()
 	if err != nil {
 		// this error is not critical
-		LogWarning.Println("Error running kubectl to get status")
+		common.LogWarning.Println("Error running kubectl to get status")
 	}
 	payload := cmdOut
 	//w.Header().Set("Content-Type", "application/json")
@@ -112,11 +114,11 @@ func ApplicationProvision(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		LogInfo.Println("Cluster Number", clusterNumber)
+		common.LogInfo.Println("Cluster Number", clusterNumber)
 		vars["cluster"] = clusterNumber
 		cluster = vars["cluster"]
 	} else {
-		LogInfo.Println("Setting cluster ", cluster)
+		common.LogInfo.Println("Setting cluster ", cluster)
 	}
 
 	// convert vars to something compatible with render_template
@@ -125,7 +127,7 @@ func ApplicationProvision(w http.ResponseWriter, r *http.Request) {
 		m[k] = v
 	}
 
-	actionsOutput, err := RunActions("/v1/provision", m)
+	actionsOutput, err := services.RunActions("/v1/provision", m)
 
 	actionsOutput["cluster"] = cluster
 
@@ -136,7 +138,7 @@ func ApplicationProvision(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
-	LogInfo.Println(actionsOutput)
+	common.LogInfo.Println(actionsOutput)
 }
 
 /*ApplicationDelete is a wrapper to delete kuberbetes deployment*/
@@ -148,7 +150,7 @@ func ApplicationDelete(w http.ResponseWriter, r *http.Request) {
 	for k, v := range vars {
 		m[k] = v
 	}
-	actionsOutput, err := RunActions("/v1/delete", m)
+	actionsOutput, err := services.RunActions("/v1/delete", m)
 
 	w.Header().Set("Content-Type", "application/json")
 	outputJSON, _ := json.MarshalIndent(actionsOutput, "", " ")
@@ -158,7 +160,7 @@ func ApplicationDelete(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 	}
 
-	LogInfo.Println(actionsOutput)
+	common.LogInfo.Println(actionsOutput)
 }
 
 /*ApplicationUpdate ...*/
@@ -171,9 +173,9 @@ func ApplicationUpdate(w http.ResponseWriter, r *http.Request) {
 	ttl, ok := vars["ttl"]
 	if !ok {
 		var err error
-		ttl, err = config.GetString("application/default/ttl", "600")
+		ttl, err = common.Config.GetString("application/default/ttl", "600")
 		if err != nil {
-			LogInfo.Println(err)
+			common.LogInfo.Println(err)
 		}
 	}
 
@@ -186,7 +188,7 @@ func ApplicationUpdate(w http.ResponseWriter, r *http.Request) {
 
 	payload, err := json.MarshalJSON()
 	if err != nil {
-		LogInfo.Println(err)
+		common.LogInfo.Println(err)
 	}
 
 	//w.Header().Set("Content-Type", "application/text")

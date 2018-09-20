@@ -11,6 +11,7 @@ import (
 	//"k8s.io/client-go/tools/clientcmd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+	"github.com/kubeam/kubeam/common"
 )
 
 /*GetResourceStatus get Status of specified resources. Iterating over each type of app*/
@@ -22,23 +23,23 @@ func GetResourceStatus(parms map[string]string, resourcePostfix []string) ([]byt
 	// creates the in-cluster config
 	currconfig, err := rest.InClusterConfig()
 	if err != nil {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 		return []byte("{}"), err
 	}
 	clientset, err := kubernetes.NewForConfig(currconfig)
 	if err != nil {
-		LogError.Println("Error getting clientset of kubernetes")
+		common.LogError.Println("Error getting clientset of kubernetes")
 		return []byte("{}"), err
 	}
 	deploymentsClient := clientset.AppsV1beta1().Deployments(apiv1.NamespaceDefault)
 
 	list, err := deploymentsClient.List(metav1.ListOptions{})
 	if err != nil {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 		return []byte("{}"), err
 	}
 	resourceName := fmt.Sprintf("%v-%v-%v", application, appEnv, cluster)
-	LogInfo.Println("Resource name ", resourceName)
+	common.LogInfo.Println("Resource name ", resourceName)
 	var output bytes.Buffer
 	output.WriteString("{")
 	output.WriteString(fmt.Sprintf("\"application\": \"%v\",\n", application))
@@ -71,7 +72,7 @@ func GetResourceStatus(parms map[string]string, resourcePostfix []string) ([]byt
 	out := map[string]interface{}{}
 	json.Unmarshal(output.Bytes(), &out)
 	outputJSON, _ := json.MarshalIndent(out, "", " ")
-	LogInfo.Println("Output :", output.String())
+	common.LogInfo.Println("Output :", output.String())
 
 	return outputJSON, err
 }

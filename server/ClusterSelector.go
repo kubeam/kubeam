@@ -10,6 +10,8 @@ import (
 
 	"github.com/go-redis/redis"
 	"gopkg.in/yaml.v2"
+	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/services"
 )
 
 /*ClusterList struct describes responses with description of clusters*/
@@ -23,12 +25,12 @@ var redisClient *redis.Client
 /*NewDBClient establishes a new redis database connection and returns
 the client connection object*/
 func NewDBClient() *redis.Client {
-	redisHost, err := config.GetString("redis/host", "localhost")
-	redisPort, err := config.GetInt("redis/port", 6379)
-	redisPassword, err := config.GetString("redis/password", "")
-	LogInfo.Println(redisHost)
-	LogInfo.Println(redisPort)
-	LogInfo.Println(redisPassword)
+	redisHost, err := common.Config.GetString("redis/host", "localhost")
+	redisPort, err := common.Config.GetInt("redis/port", 6379)
+	redisPassword, err := common.Config.GetString("redis/password", "")
+	common.LogInfo.Println(redisHost)
+	common.LogInfo.Println(redisPort)
+	common.LogInfo.Println(redisPassword)
 
 	// BUG/FIX: should be using sentinel. We already have it running might as whell use it.
 	client := redis.NewClient(&redis.Options{
@@ -47,11 +49,11 @@ to the incoming resource*/
 func DBClientReserveCluster(client *redis.Client, app string, env string, key string, val []byte, t time.Duration) error {
 	err := client.Set(fmt.Sprintf("%v-%v-%v", app, env, key), val, t).Err()
 	//first slice then convert to string (string is a read-only slice of bytes)
-	LogInfo.Printf("%v-%v-%v [%v]", app, env, key, string(val[:]))
+	common.LogInfo.Printf("%v-%v-%v [%v]", app, env, key, string(val[:]))
 	if err != nil {
 		return err
 	}
-	LogInfo.Printf("Created reservation for %v-%v-%v [%v] with TTL of %v", app, env, key, string(val[:]), 300)
+	common.LogInfo.Printf("Created reservation for %v-%v-%v [%v] with TTL of %v", app, env, key, string(val[:]), 300)
 	return nil
 }
 
@@ -68,13 +70,13 @@ func DBClientFindAndReserve(client *redis.Client, app string, env string, ttl ti
 	err = yaml.Unmarshal(yamlFile, &clusters)
 	check(err)
 
-	LogInfo.Printf("Description: %#v\n", clusters.Description)
+	common.LogInfo.Printf("Description: %#v\n", clusters.Description)
 	for key, value := range clusters.Clusters {
 		fmt.Println("Checking Cluster", key)
 		fmt.Println("Checking value", value)
 		val, err := client.Get(fmt.Sprintf("%v-%v-%v", app, env, key)).Result()
 		if err == redis.Nil {
-			LogInfo.Printf("Found available cluster [%v] for you.", key)
+			common.LogInfo.Printf("Found available cluster [%v] for you.", key)
 			decodedValue, _ := json.Marshal(value)
 			ttl, err := time.ParseDuration("1500s")
 			if err != nil {
@@ -88,12 +90,12 @@ func DBClientFindAndReserve(client *redis.Client, app string, env string, ttl ti
 			}
 			return string(key), nil
 		} else if err != nil {
-			LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, key)
+			common.LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, key)
 		} else {
-			LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val)
+			common.LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val)
 		}
 	}
-	LogInfo.Printf("No clusters available for reservation for appliation %v environment %v", app, env)
+	common.LogInfo.Printf("No clusters available for reservation for appliation %v environment %v", app, env)
 	return "", fmt.Errorf("No clusters available for reservation for appliation %v environment %v", app, env)
 
 }
@@ -110,17 +112,17 @@ func DBGetClusterReservation(client *redis.Client, app string, env string, clust
 	err = yaml.Unmarshal(yamlFile, &clusters)
 	check(err)
 
-	LogInfo.Printf("Description: %#v\n", clusters.Description)
+	common.LogInfo.Printf("Description: %#v\n", clusters.Description)
 	//gotReservation := false
 	var output bytes.Buffer
 	output.WriteString("{")
 	val, err := client.Get(fmt.Sprintf("%v-%v-%v", app, env, cluster)).Result()
 	if err == redis.Nil {
-		LogInfo.Printf("Cluster %v is free", cluster)
+		common.LogInfo.Printf("Cluster %v is free", cluster)
 	} else if err != nil {
-		LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, cluster)
+		common.LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, cluster)
 	} else {
-		LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", cluster, val)
+		common.LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", cluster, val)
 
 		out := map[string]interface{}{}
 		json.Unmarshal([]byte(val), &out)
@@ -135,7 +137,7 @@ func DBGetClusterReservation(client *redis.Client, app string, env string, clust
 		output.WriteString(string(outputJSON))
 	}
 	output.WriteString("}")
-	LogInfo.Printf("List Of clusters [%v]", output)
+	common.LogInfo.Printf("List Of clusters [%v]", output)
 	return output.String(), err
 
 }
@@ -181,7 +183,7 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 	err = yaml.Unmarshal(yamlFile, &clusters)
 	check(err)
 
-	LogInfo.Printf("Description: %#v\n", clusters.Description)
+	common.LogInfo.Printf("Description: %#v\n", clusters.Description)
 	var output bytes.Buffer
 	output.WriteString("{")
 	isFirst := true
@@ -194,12 +196,12 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 		fmt.Println("Checking value", value)
 		val, err := client.Get(fmt.Sprintf("%v-%v-%v", app, env, key)).Result()
 		if err == redis.Nil {
-			LogInfo.Printf("Cluster %v is free", key)
+			common.LogInfo.Printf("Cluster %v is free", key)
 
 		} else if err != nil {
-			LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, key)
+			common.LogError.Printf("Failed to query redis for key [%v-%v-%v]", app, env, key)
 		} else {
-			LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val)
+			common.LogInfo.Printf("Cluster %v has a reservation valid for 0 seconds %v", key, val)
 
 			out := map[string]interface{}{}
 			json.Unmarshal([]byte(val), &out)
@@ -212,9 +214,9 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 			out["ttl"] = keyExp.String()
 
 			if detail == true {
-				resources, err := KubeGetDeployments(resourceName)
+				resources, err := services.KubeGetDeployments(resourceName)
 				if err != nil {
-					LogError.Println("Getting Deployments information form kubernetes for key ", key)
+					common.LogError.Println("Getting Deployments information form kubernetes for key ", key)
 				} else {
 					if len(resources) > 0 {
 						out["resources"] = resources
@@ -232,13 +234,13 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 		}
 	}
 	output.WriteString("}")
-	LogInfo.Printf("List Of clusters [%v]", output)
+	common.LogInfo.Printf("List Of clusters [%v]", output)
 
 	//Make it pretty
 	out := map[string]interface{}{}
 	json.Unmarshal(output.Bytes(), &out)
 	outputJSON, _ := json.MarshalIndent(out, "", " ")
-	LogInfo.Println("Output :", output.String())
+	common.LogInfo.Println("Output :", output.String())
 
 	return string(outputJSON), nil
 
@@ -246,6 +248,6 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 
 func check(e error) {
 	if e != nil {
-		LogError.Println(e)
+		common.LogError.Println(e)
 	}
 }

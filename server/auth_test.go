@@ -38,10 +38,10 @@ func setUp(t *testing.T) {
 	router = mux.NewRouter().StrictSlash(true)
 	setRoutes(router)
 
-	// Init Loggers:
+	// Init common.Loggers:
 	// File descriptors in order: Trace, Debug, Info, Warning, Error
 	// set to ** ioutil.Discard ** to stop recording those logs
-	InitLogger(os.Stdout, os.Stdout, os.Stdout, os.Stdout, os.Stderr)
+	Initcommon.Logger(os.Stdout, os.Stdout, os.Stdout, os.Stdout, os.Stderr)
 
 	// Read application config from file
 	f, err := os.Open("config-test.yaml")

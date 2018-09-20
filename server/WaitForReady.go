@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	//"github.com/bitly/go-simplejson"
 	"io/ioutil"
+	"github.com/kubeam/kubeam/common"
 )
 
 // ApplicationWaitForReady - Wait for a application to be fully deployed. this is a sync call.
@@ -19,7 +20,7 @@ func ApplicationWaitForReady(w http.ResponseWriter, r *http.Request) {
 	appCluster := vars["cluster"]
 
 	clusterList, err := DBGetClusterReservation(redisClient, application, appEnv, appCluster)
-	LogTrace.Println(clusterList)
+	common.LogTrace.Println(clusterList)
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", application, appEnv))
 	if err != nil {
@@ -29,13 +30,13 @@ func ApplicationWaitForReady(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	LogInfo.Println(yamlFile)
+	common.LogInfo.Println(yamlFile)
 	cmdName := "./kubectl"
 	cmdArgs := []string{"--namespace", "qbo", "rollout", "status", "deployment"}
 
 	resourceName := fmt.Sprintf("%s-%s-c%s-%s", application, appEnv, appCluster, "app")
 	resourceArgs := append(cmdArgs, resourceName)
-	LogTrace.Println(fmt.Sprintf("Running : %s %s", cmdName, resourceArgs))
+	common.LogTrace.Println(fmt.Sprintf("Running : %s %s", cmdName, resourceArgs))
 	cmdOut, _ := exec.Command(cmdName, resourceArgs...).CombinedOutput()
 
 	w.Header().Set("Content-Type", "application/json")

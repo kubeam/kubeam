@@ -4,56 +4,13 @@ import (
 	"crypto/tls"
 	"github.com/creamdog/gonfig"
 	"github.com/gorilla/mux"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"github.com/kubeam/kubeam/common"
 )
 
-var config gonfig.Gonfig
-
-var (
-	//LogTrace ...
-	LogTrace *log.Logger
-	//LogDebug ...
-	LogDebug *log.Logger
-	//LogInfo ...
-	LogInfo *log.Logger
-	//LogWarning ...
-	LogWarning *log.Logger
-	//LogError ...
-	LogError *log.Logger
-)
-
-/*InitLogger initializes different logging handlers*/
-func InitLogger(
-	traceHandle io.Writer,
-	debugHandle io.Writer,
-	infoHandle io.Writer,
-	warningHandle io.Writer,
-	errorHandle io.Writer) {
-
-	LogTrace = log.New(traceHandle,
-		"TRACE: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-
-	LogDebug = log.New(debugHandle,
-		"TRACE: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-
-	LogInfo = log.New(infoHandle,
-		"INFO: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-
-	LogWarning = log.New(warningHandle,
-		"WARNING: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-
-	LogError = log.New(errorHandle,
-		"ERROR: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-}
 
 /*LowerCaseURI returns a lower cases converted URL path*/
 func LowerCaseURI(h http.Handler) http.Handler {
@@ -68,22 +25,22 @@ func LowerCaseURI(h http.Handler) http.Handler {
 // StartServer : Starts Kubeam Server
 func StartServer() {
 
-	// Init Loggers:
+	// Init common.Loggers:
 	// File descriptors in order: Trace, Debug, Info, Warning, Error
 	// set to ** ioutil.Discard ** to stop recording those logs
-	InitLogger(os.Stdout, os.Stdout, os.Stdout, os.Stdout, os.Stderr)
+	common.InitLogger(os.Stdout, os.Stdout, os.Stdout, os.Stdout, os.Stderr)
 
 	//
 	// Read application config from file
 	f, err := os.Open("config.yaml")
 	if err != nil {
-		LogError.Printf("Error configuration file: %v\n", err)
+		common.LogError.Printf("Error configuration file: %v\n", err)
 		os.Exit(1)
 	}
 	defer f.Close()
-	config, err = gonfig.FromYml(f)
+	common.Config, err = gonfig.FromYml(f)
 	if err != nil {
-		LogError.Printf("Error configuration file: %v\n", err)
+		common.LogError.Printf("Error configuration file: %v\n", err)
 		os.Exit(1)
 	}
 	//fmt.Println(reflect.TypeOf(config))
@@ -135,8 +92,8 @@ func StartServer() {
 		TLSConfig:    cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
-	sslcert, err := config.GetString("https/certificate", "server.crt")
-	sslkey, err := config.GetString("https/key", "server.key")
+	sslcert, err := common.Config.GetString("https/certificate", "server.crt")
+	sslkey, err := common.Config.GetString("https/key", "server.key")
 
 	log.Fatal(srv.ListenAndServeTLS(sslcert, sslkey))
 	//log.Fatal(http.ListenAndServe(":8080", router))

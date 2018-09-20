@@ -1,4 +1,4 @@
-package server
+package services
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v2"
+	"github.com/kubeam/kubeam/common"
 )
 
 //APIList describes the list of APIs for the application
@@ -57,9 +58,12 @@ func GetAPIActions(api string, application string, m map[string]interface{}) ([]
 	// if err != nil {
 	// 	return nil, errors.New(fmt.Sprintf("Could not find a cluster definition for api %v ", application))
 	// }
-	rendered := []byte(RenderTemplate(fmt.Sprintf("applications/%v/api.yaml", application), m))
-	err := yaml.Unmarshal(rendered, &myapi)
+	rendered, err := common.RenderTemplate(fmt.Sprintf("applications/%v/api.yaml", application), m)
 	if err != nil {
+		return nil, err
+	}
+	errUnmarshal := yaml.Unmarshal([]byte(rendered), &myapi)
+	if errUnmarshal != nil {
 		return nil, fmt.Errorf("Failed to parse %v", application)
 	}
 
@@ -75,14 +79,14 @@ func GetAPIActions(api string, application string, m map[string]interface{}) ([]
 /*ExecCmd executions the input command and argumets on the command line and
 returns the output*/
 func ExecCmd(cmdName string, cmdArgs []string) ([]byte, error) {
-	LogDebug.Println("Running: ", cmdName, fmt.Sprintln(strings.Join(cmdArgs, " ")))
+	common.LogDebug.Println("Running: ", cmdName, fmt.Sprintln(strings.Join(cmdArgs, " ")))
 	cmdOut, err := exec.Command(cmdName, cmdArgs...).Output()
 	if cmdOut != nil {
-		LogInfo.Println("CmdOut: ", string(cmdOut))
+		common.LogInfo.Println("CmdOut: ", string(cmdOut))
 	}
 	if err != nil {
-		LogError.Println("Running: ", cmdName, fmt.Sprintln(strings.Join(cmdArgs, " ")))
-		LogError.Println(err.Error())
+		common.LogError.Println("Running: ", cmdName, fmt.Sprintln(strings.Join(cmdArgs, " ")))
+		common.LogError.Println(err.Error())
 		return nil, err
 	}
 	return cmdOut, err
@@ -139,18 +143,22 @@ func RunActions(api string, vars map[string]interface{}) (map[string]interface{}
 			var tmpfile *os.File
 			_, ok := actionsItem["file"]
 			if ok {
-				rendered := []byte(RenderTemplate(fmt.Sprintf("applications/%v/%v", app, actionsItem["file"].(string)), vars))
+				rendered, err := common.RenderTemplate(fmt.Sprintf("applications/%v/%v", app, actionsItem["file"].(string)), vars)
+				if err != nil {
+					common.LogError.Println(err)
+					return nil, err
+				}
 
 				tmpfile, err = ioutil.TempFile("tmp/", fmt.Sprintf("%s.rendered.", path.Base(actionsItem["file"].(string))))
 				if err != nil {
-					LogInfo.Println(err)
-				} else {
-					tempfileName = tmpfile.Name()
+					common.LogError.Println(err)
+					return nil, err
 				}
-				//defer os.Remove(tmpfile.Name()) // clean up
+				tempfileName = tmpfile.Name()
+				defer os.Remove(tmpfile.Name()) // clean up
 
-				if _, err := tmpfile.Write(rendered); err != nil {
-					LogError.Println(err)
+				if _, err := tmpfile.Write([]byte(rendered)); err != nil {
+					common.LogError.Println(err)
 				}
 
 			}
@@ -181,7 +189,7 @@ func RunActions(api string, vars map[string]interface{}) (map[string]interface{}
 			}
 			if tmpfile != nil {
 				if err := tmpfile.Close(); err != nil {
-					LogError.Println(err)
+					common.LogError.Println(err)
 				}
 			}
 			actionsOutput["actions"] = append(actionsOutput["actions"], currActionOutput)

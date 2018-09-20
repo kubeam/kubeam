@@ -14,6 +14,7 @@ import (
 
 	git "gopkg.in/src-d/go-git.v4"
 	githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"github.com/kubeam/kubeam/common"
 )
 
 const signaturePrefix = "sha1="
@@ -57,7 +58,7 @@ func GetGithubRepos(w http.ResponseWriter, r *http.Request) {
 // ParseGithubHook reads a Hook from an incoming HTTP Request.
 func ParseGithubHook(req *http.Request) (*GitHubHook, error) {
 	var gh = NewHook(req)
-	LogInfo.Printf("%##v", gh)
+	common.LogInfo.Printf("%##v", gh)
 
 	if len(gh.Signature) == 0 {
 		return nil, errors.New("No Github Signature")
@@ -70,7 +71,7 @@ func ParseGithubHook(req *http.Request) (*GitHubHook, error) {
 	}
 
 	gh.Payload, _ = ioutil.ReadAll(req.Body)
-	secret, err := config.GetString("github/secret", "")
+	secret, err := common.Config.GetString("github/secret", "")
 
 	if err != nil || !gh.SignedBy([]byte(secret)) {
 		return nil, errors.New("Unable to verify signature")
@@ -80,7 +81,7 @@ func ParseGithubHook(req *http.Request) (*GitHubHook, error) {
 
 /*NewHook inits a new GithubHook struct*/
 func NewHook(req *http.Request) *GitHubHook {
-	LogInfo.Printf("%##v", req.Header)
+	common.LogInfo.Printf("%##v", req.Header)
 	return &GitHubHook{
 		Signature: req.Header.Get("X-Hub-Signature"),
 		Event:     req.Header.Get("X-GitHub-Event"),
@@ -129,11 +130,11 @@ application/{repo}*/
 func (ghdata *GitHubData) CloneAndSymlinkApp() (string, string) {
 	dir, _ := os.Getwd()
 	ndir := fmt.Sprintf("%s%s", dir, ghdata.RepoName)
-	username, err := config.GetString("github/username", "")
-	token, err := config.GetString("github/token", "")
+	username, err := common.Config.GetString("github/username", "")
+	token, err := common.Config.GetString("github/token", "")
 
 	if err != nil {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 	}
 
 	_, err = git.PlainClone(ndir, false, &git.CloneOptions{
@@ -145,12 +146,12 @@ func (ghdata *GitHubData) CloneAndSymlinkApp() (string, string) {
 		Progress: os.Stdout,
 	})
 	if err != nil {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 	}
 	symlinkDest := fmt.Sprintf("%s%s", dir, ghdata.RepoName)
 	symlinkSrc := fmt.Sprintf("/applications/%s", ghdata.RepoName)
 	if err = os.Symlink(symlinkDest, symlinkSrc); err != nil {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 	}
 	return symlinkSrc, symlinkDest
 }
@@ -184,9 +185,9 @@ func signBody(secret, body []byte) []byte {
 func (ghdata *GitHubData) SaveGhData() {
 	db := GetDatabaseConnection()
 	stmt, err := db.Prepare("REPLACE INTO gitrepos VALUES (?, ?, ?, ?)")
-	ErrorHandler(err)
+	common.ErrorHandler(err)
 	_, err = stmt.Exec(ghdata.RepoID, ghdata.RepoName, ghdata.CommitID, ghdata.URL)
-	ErrorHandler(err)
+	common.ErrorHandler(err)
 }
 
 /*GetGhData ...*/
@@ -194,7 +195,7 @@ func GetGhData() ([](*GitHubData), error) {
 	var ghdatalist [](*GitHubData)
 	db := GetDatabaseConnection()
 	stmt, err := db.Query("SELECT * from gitrepos")
-	ErrorHandler(err)
+	common.ErrorHandler(err)
 	if err == nil {
 		for stmt.Next() {
 			var ghdata = new(GitHubData)
@@ -213,7 +214,7 @@ func LoadGitRepos(w http.ResponseWriter, r *http.Request) {
 	var repolist []string
 	ghdatalist, err := GetGhData()
 	if err != nil {
-		LogError.Println(err.Error())
+		common.LogError.Println(err.Error())
 	} else {
 		for _, ghdata := range ghdatalist {
 			repolist = append(repolist, ghdata.RepoName)
