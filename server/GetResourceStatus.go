@@ -37,7 +37,7 @@ func GetResourceStatus(parms map[string]string, resourcePostfix []string) ([]byt
 		LogError.Println(err.Error())
 		return []byte("{}"), err
 	}
-	resourceName := fmt.Sprintf("%v-%v-c%v", application, appEnv, cluster)
+	resourceName := fmt.Sprintf("%v-%v-%v", application, appEnv, cluster)
 	LogInfo.Println("Resource name ", resourceName)
 	var output bytes.Buffer
 	output.WriteString("{")
