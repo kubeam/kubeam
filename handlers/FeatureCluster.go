@@ -1,4 +1,4 @@
-package server
+package handlers
 
 import (
 	"encoding/json"
@@ -10,12 +10,13 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/models"
 	yaml "gopkg.in/yaml.v2"
 )
 
 /*ReserveFeatureCluster reserves a feature cluster*/
 func ReserveFeatureCluster(w http.ResponseWriter, r *http.Request) {
-	var clusters ClusterList
+	var clusters models.ClusterList
 	vars := mux.Vars(r)
 	res := make(map[string]string)
 
@@ -28,20 +29,23 @@ func ReserveFeatureCluster(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("Could not find a cluster definition for application: %v env: %v", app, env)))
 	}
 	err = yaml.Unmarshal(yamlFile, &clusters)
-	check(err)
+	//
+	// BUG/FIX: This should generate a error payload  with a json struct and return
+	common.LogError.Println(err.Error())
+	///check(err)
 
 	ttl := time.Duration(604800 * time.Second)
 	common.LogInfo.Println(app, env, branch, ttl)
 	rediskey := fmt.Sprintf("%v-%v-%v", app, env, branch)
 
-	cluster, err := FindAndReserveCluster(redisClient, rediskey, clusters, ttl)
+	cluster, err := FindAndReserveCluster(common.RedisClient, rediskey, clusters, ttl)
 
 	if err != nil {
 		common.LogError.Println(err.Error())
 		res["Cluster"] = err.Error()
 		res["TTL"] = "-1"
 	} else {
-		ttl, _ := redisClient.TTL(rediskey).Result()
+		ttl, _ := common.RedisClient.TTL(rediskey).Result()
 		res["Cluster"] = cluster
 		res["TTL"] = fmt.Sprintf("%f", ttl.Seconds())
 	}
@@ -50,7 +54,7 @@ func ReserveFeatureCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 /*FindAndReserveCluster ...*/
-func FindAndReserveCluster(client *redis.Client, rediskey string, clusters ClusterList, ttl time.Duration) (string, error) {
+func FindAndReserveCluster(client *redis.Client, rediskey string, clusters models.ClusterList, ttl time.Duration) (string, error) {
 	cls := getAllocatedClusters(client)
 
 	common.LogInfo.Println(cls)
@@ -97,7 +101,7 @@ func ReserveCluster(client *redis.Client, rediskey, cluster string, t time.Durat
 func FreeFeatureCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	rediskey := fmt.Sprintf("%s-%s-%s", vars["application"], vars["environment"], vars["branch"])
-	_, err := redisClient.Del(rediskey).Result()
+	_, err := common.RedisClient.Del(rediskey).Result()
 	if err != nil {
 		common.LogError.Println(err.Error())
 	}
@@ -122,8 +126,8 @@ func GetFeatureCluster(w http.ResponseWriter, r *http.Request) {
 	res := make(map[string]string)
 	rediskey := fmt.Sprintf("%s-%s-%s", vars["application"], vars["environment"], vars["branch"])
 
-	if cluster, err := redisClient.Get(rediskey).Result(); err != redis.Nil {
-		ttl, _ := redisClient.TTL(rediskey).Result()
+	if cluster, err := common.RedisClient.Get(rediskey).Result(); err != redis.Nil {
+		ttl, _ := common.RedisClient.TTL(rediskey).Result()
 		res["TTL"] = fmt.Sprintf("%f", ttl.Seconds())
 		res["Cluster"] = cluster
 

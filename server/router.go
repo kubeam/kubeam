@@ -2,73 +2,75 @@ package server
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/kubeam/kubeam/handlers"
 )
 
-func setRoutes(router *mux.Router) {
-	router.HandleFunc("/", BasicAuth(AuthZ(Index)))
-	router.HandleFunc("/health-check", BasicAuth(AuthZ(HealthCheck)))
+// SetRoutes - configures all https routes
+func SetRoutes(router *mux.Router) {
+	router.HandleFunc("/", BasicAuth(AuthZ(handlers.Index)))
+	router.HandleFunc("/health-check", BasicAuth(AuthZ(handlers.HealthCheck)))
 	router.HandleFunc("/v1/create/{application}/{environment}/{cluster}/{tag}",
-		BasicAuth(AuthZ(ApplicationCreate))).Methods("PUSH")
+		BasicAuth(AuthZ(handlers.ApplicationCreate))).Methods("PUSH")
 	router.HandleFunc("/v1/create/{application}/{environment}/{cluster}/{tag}",
-		BasicAuth(AuthZ(ApplicationCreate))).Methods("POST")
+		BasicAuth(AuthZ(handlers.ApplicationCreate))).Methods("POST")
 
 	router.HandleFunc("/v1/provision/self/{environment}/{tag}",
-		BasicAuth(AuthZ(SelfProvision))).Methods("PUSH")
+		BasicAuth(AuthZ(handlers.SelfProvision))).Methods("PUSH")
 	router.HandleFunc("/v1/provision/self/{environment}/{tag}",
-		BasicAuth(AuthZ(SelfProvision))).Methods("POST")
+		BasicAuth(AuthZ(handlers.SelfProvision))).Methods("POST")
 
 	// Provision methods are used by ephemeral environments. This is they have a timer
 	router.HandleFunc("/v1/provision/{application}/{environment}/{tag}",
-		BasicAuth(AuthZ(ApplicationProvision))).Methods("PUSH")
+		BasicAuth(AuthZ(handlers.ApplicationProvision))).Methods("PUSH")
 	router.HandleFunc("/v1/provision/{application}/{environment}/{tag}",
-		BasicAuth(AuthZ(ApplicationProvision))).Methods("POST")
+		BasicAuth(AuthZ(handlers.ApplicationProvision))).Methods("POST")
 	router.HandleFunc("/v1/provision/{application}/{environment}/{cluster}",
-		BasicAuth(AuthZ(ApplicationDelete))).Methods("DELETE")
+		BasicAuth(AuthZ(handlers.ApplicationDelete))).Methods("DELETE")
 	router.HandleFunc("/v1/provision/{application}/{environment}/{cluster}",
-		BasicAuth(AuthZ(ApplicationStatus))).Methods("GET")
+		BasicAuth(AuthZ(handlers.ApplicationStatus))).Methods("GET")
 
 	// Methors use by non ephemeral environments. They are non destructive. Managed resources are long lived (no timer)
 	router.HandleFunc("/v1/deploy/{application}/{environment}/{cluster}/{tag}",
-		BasicAuth(AuthZ(ApplicationDeploy))).Methods("POST")
+		BasicAuth(AuthZ(handlers.ApplicationDeploy))).Methods("POST")
 
 	// Gets a list of all cluster reservations
 	router.HandleFunc("/v1/listclusters/{application}/{environment}",
-		BasicAuth(AuthZ(ApplicationListClusters))).Methods("GET")
+		BasicAuth(AuthZ(handlers.ApplicationListClusters))).Methods("GET")
 
 	// Gets detailed information about a cluster. (PODS, Docker tags, etc)
 	router.HandleFunc("/v1/getclusterdetail/{application}/{environment}/{cluster}",
-		BasicAuth(AuthZ(ApplicationGetClusterDetail))).Methods("GET")
+		BasicAuth(AuthZ(handlers.ApplicationGetClusterDetail))).Methods("GET")
 
 	router.HandleFunc("/v1/getallclustersdetail/{application}/{environment}",
-		BasicAuth(AuthZ(ApplicationGetAllClustersDetail))).Methods("GET")
+		BasicAuth(AuthZ(handlers.ApplicationGetAllClustersDetail))).Methods("GET")
 
 	router.HandleFunc("/v1/waitforready/{application}/{environment}/{cluster}",
-		BasicAuth(AuthZ(ApplicationWaitForReady))).Methods("GET")
+		BasicAuth(AuthZ(handlers.ApplicationWaitForReady))).Methods("GET")
 
 	router.HandleFunc("/v1/provision/{application}/{environment}/{cluster}/{tag}/{ttl}",
-		BasicAuth(AuthZ(ApplicationDelete))).Methods("PATCH")
+		BasicAuth(AuthZ(handlers.ApplicationDelete))).Methods("PATCH")
 
 	router.HandleFunc("/v1/event/{application}/{environment}/{cluster}/{tag}",
-		BasicAuth(AuthZ(EventStatus))).Methods("POST")
+		BasicAuth(AuthZ(handlers.EventStatus))).Methods("POST")
 
 	// Manage Kubernetes Jobs
 	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{jobname}",
-		BasicAuth(AuthZ(RunJob))).Methods("POST")
+		BasicAuth(AuthZ(handlers.RunJob))).Methods("POST")
 	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{jobname}",
-		BasicAuth(AuthZ(GetJobStatus))).Methods("GET")
+		BasicAuth(AuthZ(handlers.GetJobStatus))).Methods("GET")
 	router.HandleFunc("/v1/kubejob/{application}/{environment}/{cluster}/{jobname}",
-		BasicAuth(AuthZ(DeleteJob))).Methods("DELETE")
+		BasicAuth(AuthZ(handlers.DeleteJob))).Methods("DELETE")
 
 	// Github hook to checkout git repos
-	router.HandleFunc("/v1/githubhook", GetGithubRepos).Methods("POST")
-	router.HandleFunc("/v1/githubhook", LoadGitRepos).Methods("PUSH")
+	router.HandleFunc("/v1/githubhook", handlers.GetGithubRepos).Methods("POST")
+	router.HandleFunc("/v1/githubhook", handlers.LoadGitRepos).Methods("PUSH")
 
 	// Get Clusters for Feature branches
 	router.HandleFunc("/v1/featurecluster/{application}/{environment}/{branch}",
-		BasicAuth(AuthZ(ReserveFeatureCluster))).Methods("POST")
+		BasicAuth(AuthZ(handlers.ReserveFeatureCluster))).Methods("POST")
 	router.HandleFunc("/v1/featurecluster/{application}/{environment}/{branch}",
-		BasicAuth(AuthZ(GetFeatureCluster))).Methods("GET")
+		BasicAuth(AuthZ(handlers.GetFeatureCluster))).Methods("GET")
 	router.HandleFunc("/v1/featurecluster/{application}/{environment}/{branch}",
-		BasicAuth(AuthZ(FreeFeatureCluster))).Methods("DELETE")
+		BasicAuth(AuthZ(handlers.FreeFeatureCluster))).Methods("DELETE")
 
 }

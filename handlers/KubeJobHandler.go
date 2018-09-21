@@ -1,17 +1,16 @@
-package server
+package handlers
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/services"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strings"
 	"time"
-
-	mux "github.com/gorilla/mux"
-	"github.com/kubeam/kubeam/common"
-	"github.com/kubeam/kubeam/services"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 /*RunJob parses payload to execute the cron command and it's arguments*/
@@ -44,6 +43,21 @@ func RunJob(w http.ResponseWriter, r *http.Request) {
 		common.LogError.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "application/text")
+		w.Write([]byte(err.Error()))
+	}
+}
+
+/*DeleteJob deletes a kubernetes job from given app-env-cluster*/
+func DeleteJob(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/text")
+	vars := mux.Vars(r)
+	resource := fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"],
+		vars["environment"], vars["cluster"], vars["jobname"])
+	if namespace, err := services.GetJobNamespace(vars); err == nil {
+		result := services.DeleteKubernetesJob(resource, namespace)
+		w.Write([]byte(result))
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
 }
@@ -111,21 +125,6 @@ func GetJobStatus(w http.ResponseWriter, r *http.Request) {
 	} else {
 		common.LogError.Println(err.Error())
 		w.Header().Set("Content-Type", "application/text")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-	}
-}
-
-/*DeleteJob deletes a kubernetes job from given app-env-cluster*/
-func DeleteJob(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/text")
-	vars := mux.Vars(r)
-	resource := fmt.Sprintf("%s-%s-c%s-job-%s", vars["application"],
-		vars["environment"], vars["cluster"], vars["jobname"])
-	if namespace, err := services.GetJobNamespace(vars); err == nil {
-		result := services.DeleteKubernetesJob(resource, namespace)
-		w.Write([]byte(result))
-	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}

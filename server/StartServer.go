@@ -5,9 +5,12 @@ import (
 	"github.com/creamdog/gonfig"
 	"github.com/gorilla/mux"
 	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/handlers"
+	"github.com/kubeam/kubeam/services"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -43,12 +46,12 @@ func StartServer() {
 		os.Exit(1)
 	}
 	//fmt.Println(reflect.TypeOf(config))
-	redisClient = NewDBClient()
+	common.RedisClient = services.NewDBClient()
 
 	//StartScheduler()
 
 	router := mux.NewRouter().StrictSlash(true)
-	setRoutes(router)
+	SetRoutes(router)
 
 	cfg := &tls.Config{
 		MinVersion:               tls.VersionTLS12,
@@ -78,15 +81,22 @@ func StartServer() {
 	//server_addr := fmt.Sprintf("%v:%v", "", server_port)
 
 	serverMuxHC := http.NewServeMux()
-	serverMuxHC.HandleFunc("/health-check", HealthCheck)
+	serverMuxHC.HandleFunc("/health-check", handlers.HealthCheck)
 
 	// Health Check plan http listener
 	go func() {
 		http.ListenAndServe(":8081", serverMuxHC)
 	}()
 
+	var bindAddress = ""
+	if common.GlobalConfig.DevelopmentMode {
+		bindAddress = "localhost"
+	} else {
+		bindAddress = ""
+	}
+
 	srv := &http.Server{
-		Addr:         ":443",
+		Addr:         bindAddress + ":" + strconv.Itoa(common.GlobalConfig.ListenPort),
 		Handler:      LowerCaseURI(router),
 		TLSConfig:    cfg,
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),

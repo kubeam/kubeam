@@ -18,7 +18,8 @@ import (
 	"fmt"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/kubeam/kubeam/common"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -54,6 +55,14 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kubeam.yaml)")
+
+	// Settign the default deploymentMode to deployment_mode
+	rootCmd.PersistentFlags().BoolVar(&common.GlobalConfig.DevelopmentMode, "development", false, "Enable development mode")
+	// TODO: custom logger depending on development mode or not
+	if common.GlobalConfig.DevelopmentMode == true {
+		common.LogDebug.Println("Running in development mode")
+	} else {
+	}
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

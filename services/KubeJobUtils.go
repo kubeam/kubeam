@@ -11,7 +11,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kube "k8s.io/client-go/kubernetes"
+	kubernetes "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	clientcmd "k8s.io/client-go/tools/clientcmd"
 )
@@ -26,7 +26,7 @@ func GetDockerTag(api string, m map[string]interface{}) (string, error) {
 
 	app = m["application"].(string)
 	apiActions, err := GetAPIActions(api, app, m)
-	common.ErrorHandler(err)
+	ErrorHandler(err)
 
 	for _, actionsitem := range apiActions {
 		lookupresource = actionsitem["lookupresource"].(string)
@@ -58,7 +58,7 @@ func GetLogs(job *batchv1.Job) (string, error) {
 			if po.GetCreationTimestamp() == job.GetCreationTimestamp() {
 				common.LogDebug.Printf("Found job pod: %s %s", po.Name, po.GetCreationTimestamp())
 				logs, err = client.GetLogs(po.Name, &v1.PodLogOptions{}).Do().Raw()
-				common.ErrorHandler(err)
+				ErrorHandler(err)
 				return string(logs), nil
 			}
 		}
@@ -215,7 +215,7 @@ func GetJobAPI(vars map[string]string) (map[string]interface{}, error) {
 	}
 
 	ret, err := GetAPIActions("/v1/kubejob", vars["application"], m)
-	common.ErrorHandler(err)
+	ErrorHandler(err)
 
 	for _, actionsItem := range ret {
 		return actionsItem, nil
@@ -224,15 +224,15 @@ func GetJobAPI(vars map[string]string) (map[string]interface{}, error) {
 }
 
 /*GetClientSet returns a clientset object to make API calls*/
-func GetClientSet() *kube.Clientset {
+func GetClientSet() *kubernetes.Clientset {
 
 	kubeconfig, err := common.Config.GetString("/kube/config", "")
-	common.ErrorHandler(err)
+	ErrorHandler(err)
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	// config, err := rest.InClusterConfig()
-	common.ErrorHandler(err)
+	ErrorHandler(err)
 
-	clientset, err := kube.NewForConfig(config)
-	common.ErrorHandler(err)
+	clientset, err := kubernetes.NewForConfig(config)
+	ErrorHandler(err)
 	return clientset
 }

@@ -14,8 +14,11 @@
 
 package main
 
-import "github.com/kubeam/kubeam/cmd"
+import (
+	"github.com/kubeam/kubeam/cmd"
+)
 
 func main() {
+
 	cmd.Execute()
 }

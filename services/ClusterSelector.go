@@ -1,4 +1,4 @@
-package server
+package services
 
 import (
 	"bytes"
@@ -10,17 +10,9 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/kubeam/kubeam/common"
-	"github.com/kubeam/kubeam/services"
+	"github.com/kubeam/kubeam/models"
 	"gopkg.in/yaml.v2"
 )
-
-/*ClusterList struct describes responses with description of clusters*/
-type ClusterList struct {
-	Description string
-	Clusters    map[string]map[string]string
-}
-
-var redisClient *redis.Client
 
 /*NewDBClient establishes a new redis database connection and returns
 the client connection object*/
@@ -32,7 +24,6 @@ func NewDBClient() *redis.Client {
 	common.LogInfo.Println(redisPort)
 	common.LogInfo.Println(redisPassword)
 
-	// BUG/FIX: should be using sentinel. We already have it running might as whell use it.
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%v:%v", redisHost, redisPort),
 		Password: redisPassword, // no password set
@@ -61,7 +52,7 @@ func DBClientReserveCluster(client *redis.Client, app string, env string, key st
 cache of used clusters*/
 func DBClientFindAndReserve(client *redis.Client, app string, env string, ttl time.Duration) (string, error) {
 
-	var clusters ClusterList
+	var clusters models.ClusterList
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", app, env))
 	if err != nil {
@@ -103,7 +94,7 @@ func DBClientFindAndReserve(client *redis.Client, app string, env string, ttl ti
 /*DBGetClusterReservation ...*/
 func DBGetClusterReservation(client *redis.Client, app string, env string, cluster string) (string, error) {
 
-	var clusters ClusterList
+	var clusters models.ClusterList
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", app, env))
 	if err != nil {
@@ -173,7 +164,7 @@ func DBClientGetAllClustersDetail(client *redis.Client, app string, env string) 
 using those clusters*/
 func DBClientListClusters(client *redis.Client, app string, env string, cluster string, detail bool) (string, error) {
 
-	var clusters ClusterList
+	var clusters models.ClusterList
 	//mymap := make(map[string]interface{})
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", app, env))
@@ -214,7 +205,7 @@ func DBClientListClusters(client *redis.Client, app string, env string, cluster 
 			out["ttl"] = keyExp.String()
 
 			if detail == true {
-				resources, err := services.KubeGetDeployments(resourceName)
+				resources, err := KubeGetDeployments(resourceName)
 				if err != nil {
 					common.LogError.Println("Getting Deployments information form kubernetes for key ", key)
 				} else {

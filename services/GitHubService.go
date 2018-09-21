@@ -1,24 +1,19 @@
-package server
+package services
 
 import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/kubeam/kubeam/common"
+	git "gopkg.in/src-d/go-git.v4"
+	githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
-
-	"github.com/kubeam/kubeam/common"
-	git "gopkg.in/src-d/go-git.v4"
-	githttp "gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 )
-
-const signaturePrefix = "sha1="
-const signatureLength = 45 // len(SignaturePrefix) + len(hex(sha1))
 
 //GitHubData ...
 type GitHubData struct {
@@ -37,23 +32,8 @@ type GitHubHook struct {
 	Payload   []byte
 }
 
-/*GetGithubRepos downloads Github repos*/
-func GetGithubRepos(w http.ResponseWriter, r *http.Request) {
-	// var dir, symlink string
-	// defer cleanup(dir, symlink)
-	hook, err := ParseGithubHook(r)
-
-	if err != nil || hook == nil {
-		w.Write([]byte(err.Error()))
-	} else {
-		data := make(map[string]interface{})
-		err = json.Unmarshal(hook.Payload, &data)
-		ghdata := ParseGithubPayload(data)
-		ghdata.CloneAndSymlinkApp()
-		ghdata.SaveGhData()
-		w.Write([]byte("Success"))
-	}
-}
+const signaturePrefix = "sha1="
+const signatureLength = 45 // len(SignaturePrefix) + len(hex(sha1))
 
 // ParseGithubHook reads a Hook from an incoming HTTP Request.
 func ParseGithubHook(req *http.Request) (*GitHubHook, error) {
@@ -185,9 +165,9 @@ func signBody(secret, body []byte) []byte {
 func (ghdata *GitHubData) SaveGhData() {
 	db := GetDatabaseConnection()
 	stmt, err := db.Prepare("REPLACE INTO gitrepos VALUES (?, ?, ?, ?)")
-	common.ErrorHandler(err)
+	ErrorHandler(err)
 	_, err = stmt.Exec(ghdata.RepoID, ghdata.RepoName, ghdata.CommitID, ghdata.URL)
-	common.ErrorHandler(err)
+	ErrorHandler(err)
 }
 
 /*GetGhData ...*/
@@ -195,7 +175,7 @@ func GetGhData() ([](*GitHubData), error) {
 	var ghdatalist [](*GitHubData)
 	db := GetDatabaseConnection()
 	stmt, err := db.Query("SELECT * from gitrepos")
-	common.ErrorHandler(err)
+	ErrorHandler(err)
 	if err == nil {
 		for stmt.Next() {
 			var ghdata = new(GitHubData)
@@ -207,20 +187,4 @@ func GetGhData() ([](*GitHubData), error) {
 		return ghdatalist, nil
 	}
 	return nil, err
-}
-
-/*LoadGitRepos ...*/
-func LoadGitRepos(w http.ResponseWriter, r *http.Request) {
-	var repolist []string
-	ghdatalist, err := GetGhData()
-	if err != nil {
-		common.LogError.Println(err.Error())
-	} else {
-		for _, ghdata := range ghdatalist {
-			repolist = append(repolist, ghdata.RepoName)
-			go ghdata.CloneAndSymlinkApp()
-		}
-	}
-	res, err := json.Marshal(repolist)
-	w.Write(res)
 }

@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/kubeam/kubeam/common"
 	"github.com/kubeam/kubeam/server"
 	"github.com/spf13/cobra"
 )
@@ -39,9 +40,11 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	startCmd.PersistentFlags().Int("port", 8080, "Listening port of KubeAM")
+
+	startCmd.PersistentFlags().IntVarP(&common.GlobalConfig.ListenPort, "port", "p", 443, "Port to listen for https requests")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// startCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 }
