@@ -60,6 +60,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&common.GlobalConfig.DevelopmentMode, "development", false, "Enable development mode")
 	// TODO: custom logger depending on development mode or not
 	if common.GlobalConfig.DevelopmentMode == true {
+		common.LogDebug.Println("Running in development mode")
 	} else {
 	}
 

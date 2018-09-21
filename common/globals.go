@@ -12,10 +12,7 @@ var Config gonfig.Gonfig
 var RedisClient *redis.Client
 
 // SystemConfiguration - ...
-type SystemConfiguration struct {
+var GlobalConfig struct {
 	ListenPort      int
 	DevelopmentMode bool
 }
-
-// GlobalConfig - ...
-var GlobalConfig SystemConfiguration

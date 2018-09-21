@@ -24,7 +24,6 @@ func NewDBClient() *redis.Client {
 	common.LogInfo.Println(redisPort)
 	common.LogInfo.Println(redisPassword)
 
-	// BUG/FIX: should be using sentinel. We already have it running might as whell use it.
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%v:%v", redisHost, redisPort),
 		Password: redisPassword, // no password set
