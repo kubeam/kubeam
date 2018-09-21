@@ -1,4 +1,4 @@
-package server
+package handlers
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ func ApplicationStatus(w http.ResponseWriter, r *http.Request) {
 		m[k] = v
 	}
 
-	payload, _ := GetResourceStatus(vars, []string{
+	payload, _ := services.GetResourceStatus(vars, []string{
 		"admin",
 		"app",
 		"db",
@@ -64,7 +64,7 @@ func SelfProvision(w http.ResponseWriter, r *http.Request) {
 
 	cmdName := "./kubectl"
 
-	UpdateResources(vars, []string{
+	services.UpdateResources(vars, []string{
 		"applications/kubeam/kubeam-deployment.yaml",
 		//"applications/kubeam/kubeam-service.yaml",
 		"applications/kubeam/kubeam-redis-deployment.yaml",
@@ -73,7 +73,7 @@ func SelfProvision(w http.ResponseWriter, r *http.Request) {
 
 	// Due to redis using persistant storage We should not use replace configuration.
 	// BUG/FIX: Until we have detection of what is already running. We issue a Create (if already exists just silently failes
-	CreateResources(vars, []string{
+	services.CreateResources(vars, []string{
 		"applications/kubeam/kubeam-service.yaml",
 		"applications/kubeam/kubeam-redis-deployment.yaml",
 		"applications/kubeam/kubeam-redis-service.yaml",
@@ -106,7 +106,7 @@ func ApplicationProvision(w http.ResponseWriter, r *http.Request) {
 		ttl := time.Duration(900 * time.Second)
 		//}
 		ttl = time.Duration(900 * time.Second)
-		clusterNumber, err := DBClientFindAndReserve(redisClient, application, appEnv, ttl)
+		clusterNumber, err := services.DBClientFindAndReserve(common.RedisClient, application, appEnv, ttl)
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			str := `{"status": "error", "description": "Unable to select cluster for specified environment, No free slots?"}`

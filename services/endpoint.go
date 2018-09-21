@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package services
 
 import (
 	"bytes"
@@ -20,17 +20,17 @@ import (
 	api "k8s.io/api/core/v1"
 )
 
-// Endpoint describes an endpoint that is host and a list of available ports for that host.
-type Endpoint struct {
+// KubeEndpoint describes an endpoint that is host and a list of available ports for that host.
+type KubeEndpoint struct {
 	// Hostname, either as a domain name or IP address.
 	Host string `json:"host"`
 	// List of ports opened for this endpoint on the hostname.
-	Ports []ServicePort `json:"ports"`
+	Ports []KubeServicePort `json:"ports"`
 }
 
 // GetExternalEndpoints returns endpoints that are externally reachable for a service.
-func GetExternalEndpoints(service *api.Service) []Endpoint {
-	var externalEndpoints []Endpoint
+func GetExternalEndpoints(service *api.Service) []KubeEndpoint {
+	var externalEndpoints []KubeEndpoint
 	if service.Spec.Type == api.ServiceTypeLoadBalancer {
 		for _, ingress := range service.Status.LoadBalancer.Ingress {
 			externalEndpoints = append(externalEndpoints, getExternalEndpoint(ingress, service.Spec.Ports))
@@ -38,7 +38,7 @@ func GetExternalEndpoints(service *api.Service) []Endpoint {
 	}
 
 	for _, ip := range service.Spec.ExternalIPs {
-		externalEndpoints = append(externalEndpoints, Endpoint{
+		externalEndpoints = append(externalEndpoints, KubeEndpoint{
 			Host:  ip,
 			Ports: GetServicePorts(service.Spec.Ports),
 		})
@@ -49,7 +49,7 @@ func GetExternalEndpoints(service *api.Service) []Endpoint {
 
 /*GetInternalEndpoint returns internal endpoint name for the given service properties,
 e.g, "my-service.namespace 80/TCP" or "my-service 53/TCP,53/UDP"*/
-func GetInternalEndpoint(serviceName, namespace string, ports []api.ServicePort) Endpoint {
+func GetInternalEndpoint(serviceName, namespace string, ports []api.ServicePort) KubeEndpoint {
 	name := serviceName
 
 	if namespace != api.NamespaceDefault && len(namespace) > 0 && len(serviceName) > 0 {
@@ -59,21 +59,21 @@ func GetInternalEndpoint(serviceName, namespace string, ports []api.ServicePort)
 		name = bufferName.String()
 	}
 
-	return Endpoint{
+	return KubeEndpoint{
 		Host:  name,
 		Ports: GetServicePorts(ports),
 	}
 }
 
 // Returns external endpoint name for the given service properties.
-func getExternalEndpoint(ingress api.LoadBalancerIngress, ports []api.ServicePort) Endpoint {
+func getExternalEndpoint(ingress api.LoadBalancerIngress, ports []api.ServicePort) KubeEndpoint {
 	var host string
 	if ingress.Hostname != "" {
 		host = ingress.Hostname
 	} else {
 		host = ingress.IP
 	}
-	return Endpoint{
+	return KubeEndpoint{
 		Host:  host,
 		Ports: GetServicePorts(ports),
 	}

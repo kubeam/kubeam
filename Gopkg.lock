@@ -100,6 +100,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/go-chi/render"
+  packages = ["."]
+  revision = "3215478343fbc559bd3fc08f7031bb134d6bdad5"
+  version = "v1.0.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/go-openapi/jsonpointer"
   packages = ["."]
@@ -708,6 +714,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "29a20ac661cf9cdf1bb34848c6abc3c8dec17fe6da908c6f06b5a719e0202a17"
+  inputs-digest = "4f31d22dfc9e88f15775d101258ea893ac7f580b8f40d548994814c303de1b41"
   solver-name = "gps-cdcl"
   solver-version = 1

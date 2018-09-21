@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package services
 
-import api "k8s.io/api/core/v1"
+import apiv1 "k8s.io/api/core/v1"
 
-// ServicePort is a pair of port and protocol, e.g. a service endpoint.
-type ServicePort struct {
+// KubeServicePort is a pair of port and protocol, e.g. a service endpoint.
+type KubeServicePort struct {
 	// Positive port number.
 	Port int32 `json:"port"`
 
 	// Protocol name, e.g., TCP or UDP.
-	Protocol api.Protocol `json:"protocol"`
+	Protocol apiv1.Protocol `json:"protocol"`
 
 	// The port on each node on which service is exposed.
 	NodePort int32 `json:"nodePort"`
 }
 
 // GetServicePorts returns human readable name for the given service ports list.
-func GetServicePorts(apiPorts []api.ServicePort) []ServicePort {
-	var ports []ServicePort
+func GetServicePorts(apiPorts []apiv1.ServicePort) []KubeServicePort {
+	var ports []KubeServicePort
 	for _, port := range apiPorts {
-		ports = append(ports, ServicePort{port.Port, port.Protocol, port.NodePort})
+		ports = append(ports, KubeServicePort{port.Port, port.Protocol, port.NodePort})
 	}
 	return ports
 }

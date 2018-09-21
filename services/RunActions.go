@@ -2,15 +2,14 @@ package services
 
 import (
 	"fmt"
+	"github.com/kubeam/kubeam/common"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 	"time"
-
-	"github.com/kubeam/kubeam/common"
-	"gopkg.in/yaml.v2"
 )
 
 //APIList describes the list of APIs for the application

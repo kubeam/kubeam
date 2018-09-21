@@ -1,4 +1,4 @@
-package server
+package handlers
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	//"github.com/bitly/go-simplejson"
 	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/services"
 	"io/ioutil"
 )
 
@@ -19,7 +20,7 @@ func ApplicationWaitForReady(w http.ResponseWriter, r *http.Request) {
 	appEnv := vars["environment"]
 	appCluster := vars["cluster"]
 
-	clusterList, err := DBGetClusterReservation(redisClient, application, appEnv, appCluster)
+	clusterList, err := services.DBGetClusterReservation(common.RedisClient, application, appEnv, appCluster)
 	common.LogTrace.Println(clusterList)
 
 	yamlFile, err := ioutil.ReadFile(fmt.Sprintf("clusters/%v-%v-clusterlist.yaml", application, appEnv))

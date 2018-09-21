@@ -14,8 +14,15 @@
 
 package main
 
-import "github.com/kubeam/kubeam/cmd"
+import (
+	"github.com/kubeam/kubeam/cmd"
+	"github.com/kubeam/kubeam/common"
+)
 
 func main() {
+
+	// Init. Global Configuration struct
+	common.GlobalConfig = common.SystemConfiguration{}
+
 	cmd.Execute()
 }

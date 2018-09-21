@@ -1,7 +1,8 @@
-package common
+package services
 
 import (
 	"github.com/go-sql-driver/mysql"
+	"github.com/kubeam/kubeam/common"
 	errors "k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -13,12 +14,12 @@ func ErrorHandler(err error) {
 				errors.IsUnauthorized(err) ||
 				errors.IsAlreadyExists(err) ||
 				errors.IsForbidden(err) {
-				LogError.Println(err.Error())
+				common.LogError.Println(err.Error())
 			} else {
-				LogError.Println(err.Error())
+				common.LogError.Println(err.Error())
 			}
 		} else {
-			LogInfo.Println(me.Message, me.Number)
+			common.LogInfo.Println(me.Message, me.Number)
 		}
 	}
 }

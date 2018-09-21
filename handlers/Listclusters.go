@@ -1,9 +1,11 @@
-package server
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/kubeam/kubeam/common"
+	"github.com/kubeam/kubeam/services"
 )
 
 /*ApplicationGetClusterDetail ...*/
@@ -13,7 +15,7 @@ func ApplicationGetClusterDetail(w http.ResponseWriter, r *http.Request) {
 	appEnv := vars["environment"]
 	appCluster := vars["cluster"]
 
-	clusterList, err := DBClientGetSingleClusterDetail(redisClient, application, appEnv, appCluster)
+	clusterList, err := services.DBClientGetSingleClusterDetail(common.RedisClient, application, appEnv, appCluster)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		str := `{"status": "error", "description": "Unable to select cluster"}`
@@ -30,7 +32,7 @@ func ApplicationGetAllClustersDetail(w http.ResponseWriter, r *http.Request) {
 	application := vars["application"]
 	appEnv := vars["environment"]
 
-	clusterList, err := DBClientGetAllClustersDetail(redisClient, application, appEnv)
+	clusterList, err := services.DBClientGetAllClustersDetail(common.RedisClient, application, appEnv)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		str := `{"status": "error", "description": "Unable get detail on environment"}`
@@ -47,7 +49,7 @@ func ApplicationListClusters(w http.ResponseWriter, r *http.Request) {
 	application := vars["application"]
 	appEnv := vars["environment"]
 
-	clusterList, err := DBClientGetAllClusters(redisClient, application, appEnv)
+	clusterList, err := services.DBClientGetAllClusters(common.RedisClient, application, appEnv)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		str := `{"status": "error", "description": "Unable to list clusters for environment"}`

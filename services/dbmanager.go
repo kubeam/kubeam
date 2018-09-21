@@ -1,12 +1,13 @@
-package server
+package services
 
 import (
 	"database/sql"
 	"fmt"
+	//_ "github.com/go-sql-driver/mysql"
 	"github.com/kubeam/kubeam/common"
 )
 
-/*GetDatabaseConnection opens, tests and returns a new database connection*/
+// GetDatabaseConnection  - opens, tests and returns a new database connection
 func GetDatabaseConnection() *sql.DB {
 	var err error
 	var db *sql.DB
