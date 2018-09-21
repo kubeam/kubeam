@@ -11,7 +11,7 @@ var Config gonfig.Gonfig
 // RedisClient - System client to access Reds
 var RedisClient *redis.Client
 
-// SystemConfiguration - ...
+// GlobalConfig - Struct contains all Global Values used by the application
 var GlobalConfig struct {
 	ListenPort      int
 	DevelopmentMode bool
